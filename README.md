@@ -26,10 +26,10 @@ pip install torch torchvision torchaudio numpy matplotlib
 
 ```text
 MLsec-project/
-├── constants.py                            # Shared constants used by the scripts.
 ├── poison_attacks.py                       # Poison attack routines and experiments.
 │
 ├── poisoning/                                   # Dataset directory containing MNIST and cat-vs-non-cat splits.
+|   ├── constants.py                            # Shared constants used by the scripts.
 |   ├── dataset.py                              # Dataset loading, preprocessing, and preparation.
 |   ├── neural_network.py                       # Neural network definition and training.
 |   ├── plotting.py                             # Plotting and visualization utilities.
@@ -61,3 +61,13 @@ MLsec-project/
 ```
 
 ---
+
+
+## Esecuzione attacco FC poisoning
+
+dalla cartella principale del progetto, eseguire il seguente comando per lanciare l'attacco FC poisoning:
+
+- su dataset cat-vs-non-cat:
+  `python3 poison_attacks.py -file_name model_cat_lr0.0075`
+- su dataset MNIST:
+  `python3 poison_attacks.py -file_name model_mnist_lr0.0075`

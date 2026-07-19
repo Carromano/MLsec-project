@@ -6,7 +6,7 @@ import numpy as np
 import h5py
 import torchvision.datasets
 
-import constants
+from . import constants
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 

@@ -42,13 +42,20 @@ def main(model, data):
     base_imgs, base_indices = get_images_from_label(data.get_train_data(), label=base_class, num=poison_num)
     # get image to use as target and its index from  data
     target_img, target_index = get_images_from_label(data.get_test_data(), label=target_class, num=1)
+
+    
+    # keep poison-crafting tensors on the same device as the model
+    base_imgs = base_imgs.to(model.device)
+    target_img = target_img.to(model.device)
+
     # get poison perturbations using FC attack
     delta = craft_fc_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon,
                              watermark_opacity=watermark_opacity)
+    delta_on_device = delta.to(model.device)
 
     # plot clean and poisoned images
     plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images")
-    plot_images(data.unnormalize_data(base_imgs + delta), 4, 8, data.is_grayscale(), title="Poisoned Images")
+    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images")
 
     print(f'Original Prediction: {model.predict(target_img).item()}')
     print(f'Clean Model Accuracy: {model.test(data.testloader)}')
@@ -57,7 +64,7 @@ def main(model, data):
     poisoned_model = model.from_pretrained(1 if data.class_num == 2 else data.class_num)
     # add poison perturbation to base samples in the training set
     data.poison_data(delta, base_indices)
-    
+
     # freeze parameters of the pretrained model, training only the new output layer
     poisoned_model.freeze_extractor(True)
     # train model
@@ -81,7 +88,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-file_name', help='model file name', required=True)
     args = parser.parse_args()
+    
     # get dataset name from the name of the model
     dataset_name = args.file_name.split('_')[1]
+
     model, data = get_data_and_model(args.file_name, dataset_name)
+    
     main(model, data)
