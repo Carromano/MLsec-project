@@ -27,11 +27,15 @@ pip install torch torchvision torchaudio numpy matplotlib
 ```text
 MLsec-project/
 ├── constants.py                            # Shared constants used by the scripts.
-├── dataset.py                              # Dataset loading, preprocessing, and preparation.
-├── neural_network.py                       # Neural network definition and training.
-├── plotting.py                             # Plotting and visualization utilities.
 ├── poison_attacks.py                       # Poison attack routines and experiments.
-├── poison_crafting.py                      # Poison data generation for the experiments.
+│
+├── poisoning/                                   # Dataset directory containing MNIST and cat-vs-non-cat splits.
+|   ├── dataset.py                              # Dataset loading, preprocessing, and preparation.
+|   ├── neural_network.py                       # Neural network definition and training.
+|   ├── plotting.py                             # Plotting and visualization utilities.
+|   └── poison_crafting.py                      # Poison data generation for the experiments.
+│
+│
 │
 ├── data/                                   # Dataset directory containing MNIST and cat-vs-non-cat splits.
 │   ├── test_catvnoncat.h5                      # Test dataset for the cat vs non-cat task.
