@@ -46,3 +46,13 @@ def craft_fc_poisons(extractor, base_imgs, target_img, step_size, iterations=100
 
     # return poison perturbation (not full poisoned sample)
     return (x_poisons.detach() - base_imgs).cpu()
+
+
+
+def craft_polytope_poisons():
+    pass  # TODO: implement polytope poisons crafting
+
+
+
+def craft_gradient_matching_poisons():
+    pass  # TODO: implement gradient matching poisons crafting

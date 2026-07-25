@@ -71,3 +71,34 @@ dalla cartella principale del progetto, eseguire il seguente comando per lanciar
   `python3 poison_attacks.py -file_name model_cat_lr0.0075`
 - su dataset MNIST:
   `python3 poison_attacks.py -file_name model_mnist_lr0.0075`
+
+
+### Primo risultato
+
+$ python3 poison_attacks.py -file_name model_cat_lr0.0075
+
+Using CUDA device for hardware acceleration
+Crafting FC Poisons: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2000/2000 [00:06<00:00, 310.66it/s, loss=0.77]
+plotting.py:21: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Original Prediction: 0.0
+Clean Model Accuracy: 0.74
+Training DNN model with lr 0.1: 100%|██████████████████████████████████████████████████████████████████████████████████| 50/50 [00:00<00:00, 51.82it/s, Train acc=0.943, Train loss=0.108, Val acc=0, Val loss=0]
+Poisoned Prediction: 1.0; Success: True
+Poisoned Model Accuracy: 0.72
+
+
+$ python3 poison_attacks.py -file_name model_mnist_lr0.0075
+Using CUDA device for hardware acceleration
+Crafting FC Poisons: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2000/2000 [00:07<00:00, 268.68it/s, loss=22.7]
+/mnt/c/Users/romat/OneDrive - uniroma1.it/Magistrale/2° Anno/2o Semestre/Machine Learning Security/Progetto/MLsec-project/poisoning/plotting.py:21: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Original Prediction: 0
+Clean Model Accuracy: 0.9266
+Training DNN model with lr 0.1: 100%|███████████████████████████████████████████████████████████████████████████████████| 50/50 [01:29<00:00,  1.79s/it, Train acc=0.93, Train loss=0.252, Val acc=0, Val loss=0]
+Poisoned Prediction: 0; Success: False
+Poisoned Model Accuracy: 0.9196
+
+
+
+

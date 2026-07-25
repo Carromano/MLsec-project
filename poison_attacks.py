@@ -24,7 +24,7 @@ def get_images_from_label(data, label, num):
     return data[0][indices], indices
 
 
-def main(model, data):
+def main(model, data, dataset_name):
     # feature collision settings
     step_size = 0.01
     iterations = 2000
@@ -54,8 +54,11 @@ def main(model, data):
     delta_on_device = delta.to(model.device)
 
     # plot clean and poisoned images
-    plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images")
-    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images")
+    plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images", filename=f"./images/{dataset_name}_clean_images.png")
+    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images", filename=f"./images/{dataset_name}_poisoned_images.png")
+
+    # plot perturbations
+    plot_images(data.unnormalize_data(delta_on_device), 4, 8, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/{dataset_name}_poison_perturbations.png", isPerturbation=True)
 
     print(f'Original Prediction: {model.predict(target_img).item()}')
     print(f'Clean Model Accuracy: {model.test(data.testloader)}')
@@ -94,4 +97,4 @@ if __name__ == '__main__':
 
     model, data = get_data_and_model(args.file_name, dataset_name)
     
-    main(model, data)
+    main(model, data, dataset_name)
