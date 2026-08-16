@@ -8,6 +8,7 @@ from poisoning import dataset
 from poisoning.neural_network import NeuralNetwork, get_torch_device
 from poisoning.plotting import plot_images
 from poisoning.poison_crafting import craft_fc_poisons
+from poisoning.poison_crafting import craft_polytope_poisons
 
 
 def get_images_from_label(data, label, num):
@@ -25,40 +26,60 @@ def get_images_from_label(data, label, num):
 
 
 def main(model, data, dataset_name):
-    # feature collision settings
-    step_size = 0.01
-    iterations = 2000
-    epsilon = 0.03
-    watermark_opacity = 0.3
-
     # base class label
     base_class = 1
     # target class label
     target_class = 0
     # poison budget - number of poison samples
-    poison_num = 20
+    poison_num = 48
     
     # get images  to use as bases for poisons and their indices from training data
     base_imgs, base_indices = get_images_from_label(data.get_train_data(), label=base_class, num=poison_num)
     # get image to use as target and its index from  data
     target_img, target_index = get_images_from_label(data.get_test_data(), label=target_class, num=1)
 
-    
     # keep poison-crafting tensors on the same device as the model
     base_imgs = base_imgs.to(model.device)
     target_img = target_img.to(model.device)
 
+    print("--------------------------------------")
+
+    print(f"Base Class: {base_class};\n Target Class: {target_class};\n Poison Budget: {poison_num};\n")
+
+
+    if dataset_name == "cat":
+        print("Dataset in use: catvsnoncat")
+    elif dataset_name == "mnist":
+        print(f"Dataset in use: MNIST")
+
+    print("--------------------------------------")
+
+
+    #--------------------------------------
+    # Feature Collision Poisoning Attack
+    #--------------------------------------
+
+    # feature collision settings
+    step_size = 0.01
+    iterations = 2000
+    epsilon = 0.03
+    watermark_opacity = 0.3
+    
+    print("Feature Collision Poisoning Attack Implementation")
+
+    print(f"\nParameters:\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
+
+
     # get poison perturbations using FC attack
-    delta = craft_fc_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon,
-                             watermark_opacity=watermark_opacity)
+    delta = craft_fc_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
     delta_on_device = delta.to(model.device)
 
     # plot clean and poisoned images
-    plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images", filename=f"./images/{dataset_name}_clean_images.png")
-    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images", filename=f"./images/{dataset_name}_poisoned_images.png")
+    plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images", filename=f"./images/feature_collision_poisons/{dataset_name}_clean_images.png")
+    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images", filename=f"./images/feature_collision_poisons/{dataset_name}_poisoned_images.png")
 
     # plot perturbations
-    plot_images(data.unnormalize_data(delta_on_device), 4, 8, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/{dataset_name}_poison_perturbations.png", isPerturbation=True)
+    plot_images(data.unnormalize_data(delta_on_device), 4, 8, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/feature_collision_poisons/{dataset_name}_poison_perturbations.png", isPerturbation=True)
 
     print(f'Original Prediction: {model.predict(target_img).item()}')
     print(f'Clean Model Accuracy: {model.test(data.testloader)}')
@@ -70,11 +91,60 @@ def main(model, data, dataset_name):
 
     # freeze parameters of the pretrained model, training only the new output layer
     poisoned_model.freeze_extractor(True)
+
     # train model
     poisoned_model.fit(data.trainloader, None, 0.1, 50)
     predicted = poisoned_model.predict(target_img).item()
     print(f'Poisoned Prediction: {predicted}; Success: {predicted == base_class}')
     print(f'Poisoned Model Accuracy: {poisoned_model.test(data.testloader)}')
+
+    print("--------------------------------------")
+
+    #--------------------------------------
+    # Polytope Poisoning Attack
+    #--------------------------------------
+
+    print("Polytope Poisoning Attack Implementation")
+
+    # polytope settings
+    step_size = 0.01
+    iterations = 2000
+    epsilon = 0.03
+    watermark_opacity = 0.3
+
+    print(f"\nParameters:\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
+
+    delta_polytope = craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
+    delta_on_device = delta_polytope.to(model.device)
+
+    # plot clean and poisoned images
+    plot_images(data.unnormalize_data(base_imgs), 4, 8, data.is_grayscale(), title="Clean Images", filename=f"./images/polytope_poisons/{dataset_name}_clean_images_polytope.png")
+    plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 8, data.is_grayscale(), title="Poisoned Images", filename=f"./images/polytope_poisons/{dataset_name}_poisoned_images_polytope.png")
+
+    # plot perturbations
+    plot_images(data.unnormalize_data(delta_on_device), 4, 8, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/polytope_poisons/{dataset_name}_poison_perturbations_polytope.png", isPerturbation=True)
+
+    print(f'Original Prediction: {model.predict(target_img).item()}')
+    print(f'Clean Model Accuracy: {model.test(data.testloader)}')
+
+
+    # get copy of model with new output layer for finetuning
+    poisoned_model = model.from_pretrained(1 if data.class_num == 2 else data.class_num)
+
+    # add poison perturbation to base samples in the training set
+    data.poison_data(delta_polytope, base_indices)
+
+    # freeze parameters of the pretrained model, training only the new output layer
+    poisoned_model.freeze_extractor(True)
+
+    # train model
+    poisoned_model.fit(data.trainloader, None, 0.1, 50)
+    predicted = poisoned_model.predict(target_img).item()
+    print(f'Poisoned Prediction: {predicted}; Success: {predicted == base_class}')
+    print(f'Poisoned Model Accuracy: {poisoned_model.test(data.testloader)}')
+
+    print("--------------------------------------")
+
 
 
 def get_data_and_model(file_name, dataset_name):

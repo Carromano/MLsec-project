@@ -44,7 +44,7 @@ def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbat
     # save the figure if filename is provided, otherwise show it
     if filename is not None:
         plt.savefig(filename, bbox_inches='tight', dpi=300)
-        print(f"Saved figure to {filename}")
+        print(f"\tSaved figure to {filename}")
         
     # show the figure if the backend if it is interactive (gave error before on WSL)
     if matplotlib.get_backend().lower() != "agg":
