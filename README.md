@@ -8,6 +8,8 @@ Methodologies Evaluated:
   2. **Convex Polytope:** A relaxed optimization strategy that generates a multi-poison convex hull around the target instance ($\sum_{j=1}^k c_j \phi(x_p^j)$). By fixing the distribution coefficients to $1/k$ (Bullseye Polytope), this approach centers the target within the polytope, reducing computational overhead and significantly improving transferability.
   3. **Gradient Matching:** An advanced technique that shifts the focus from the feature space to the learning dynamics. The poisons are optimized by minimizing the negative cosine similarity of their loss gradients relative to the target instance's gradients ($\nabla_\theta \mathcal{L}$), hijacking the gradient descent direction during training.
 
+All the methodologies are finally evaluated against a third model, trained by myself on the `CIFAR-10` dataset.
+
 ---
 
 ## Requirements
@@ -16,89 +18,223 @@ Methodologies Evaluated:
 - Python ≥ 3.9
 
 ### External libraries
-```
+```sh
 pip install torch torchvision torchaudio numpy matplotlib
+
+# or
+
+pip install -r requirements.txt
 ```
 
 ---
+
+<br>
+
 
 ## Project structure
 
 ```text
 MLsec-project/
-├── poison_attacks.py                       # Poison attack routines and experiments.
+├── poison_attacks.py                   # Poison attack routines and experiments.
 │
-├── poisoning/                                   # Dataset directory containing MNIST and cat-vs-non-cat splits.
-|   ├── constants.py                            # Shared constants used by the scripts.
-|   ├── dataset.py                              # Dataset loading, preprocessing, and preparation.
-|   ├── neural_network.py                       # Neural network definition and training.
-|   ├── plotting.py                             # Plotting and visualization utilities.
-|   └── poison_crafting.py                      # Poison data generation for the experiments.
+├── poisoning/                          # Dataset loading and poison-crafting modules.
+│   ├── constants.py                     # Shared constants used by the scripts.
+│   ├── dataset.py                       # Dataset loading, preprocessing, and preparation.
+│   ├── neural_network.py                # Neural network definition and training.
+│   ├── plotting.py                      # Plotting and visualization utilities.
+│   └── poison_crafting.py               # Poison data generation for the experiments.
 │
-│
-│
-├── data/                                   # Dataset directory containing MNIST and cat-vs-non-cat splits.
-│   ├── test_catvnoncat.h5                      # Test dataset for the cat vs non-cat task.
-│   ├── train_catvnoncat.h5                     # Training dataset for the cat vs non-cat task.
-│   └── MNIST/                                  # MNIST dataset directory, divided into train/test splits.
+├── data/                               # Dataset files for the experiments.
+│   ├── test_catvnoncat.h5               # Test dataset for the cat-vs-non-cat task.
+│   ├── train_catvnoncat.h5              # Training dataset for the cat-vs-non-cat task.
+│   └── MNIST/                           # MNIST dataset, divided into train/test splits.
 │       └── raw/
-│           ├── t10k-images-idx3-ubyte      
-│           ├── t10k-images-idx3-ubyte.gz   
-│           ├── t10k-labels-idx1-ubyte      
-│           ├── t10k-labels-idx1-ubyte.gz   
-│           ├── train-images-idx3-ubyte     
-│           ├── train-images-idx3-ubyte.gz  
-│           ├── train-labels-idx1-ubyte     
-│           └── train-labels-idx1-ubyte.gz  
+│           ├── t10k-images-idx3-ubyte
+│           ├── t10k-images-idx3-ubyte.gz
+│           ├── t10k-labels-idx1-ubyte
+│           ├── t10k-labels-idx1-ubyte.gz
+│           ├── train-images-idx3-ubyte
+│           ├── train-images-idx3-ubyte.gz
+│           ├── train-labels-idx1-ubyte
+│           └── train-labels-idx1-ubyte.gz
 │
-├── models/                                 # pre-trained model artifacts for the experiments.
-|   ├── model_cat_lr0.0075                      # pre-trained model on the catvsnoncat dataset.
-|   └── model_mnist_lr0.0075                    # pre-trained model on the MNIST dataset.
-|
-├── requirements.txt                        # Python dependencies for the project.
-├── README.md                               # Project documentation
-└── LICENSE                                 # GitHub repository license.
+├── models/                             # Pre-trained model artifacts.
+│   ├── model_cat_lr0.0075               # Pre-trained model for cat-vs-non-cat.
+│   └── model_mnist_lr0.0075             # Pre-trained model for MNIST.
+│
+├── requirements.txt                     # Python dependencies for the project.
+├── README.md                            # Project documentation.
+└── LICENSE                              # GitHub repository license.
 ```
 
 ---
 
+<br>
+<br>
 
-## Esecuzione attacco FC poisoning
+# Attack Execution
 
-dalla cartella principale del progetto, eseguire il seguente comando per lanciare l'attacco FC poisoning:
+from the root project directory, the following command can be used: 
 
-- su dataset cat-vs-non-cat:
-  `python3 poison_attacks.py -file_name model_cat_lr0.0075`
-- su dataset MNIST:
-  `python3 poison_attacks.py -file_name model_mnist_lr0.0075`
+`python3 poison_attacks.py`
 
+the following parameters are mandatory to be specified:
+- `-file_name`: the name of the pre-trained model to be used for the attack
+  - can be one of the following: `model_cat_lr0.0075` or `model_mnist_lr0.0075`
+  - the choice of the model will determine the dataset to be used for the attack
+- `-attack`: the type of attack to be executed. 
+  - can be one of the following: `fc`, `polytope`, or `gradient`
 
-### Primo risultato
+The following parameters are optional and can be used to specify the base class and target class for the attack. Default values are set for binary classification datasets.
+- `-poisons`: the number of poison samples to generate (default: 10)
+- `-base_class`: the label for the base class (default: 1)
+- `-target_class`: the label for the target class (default: 0)
 
-$ python3 poison_attacks.py -file_name model_cat_lr0.0075
+**Alternatively**, is it possible to launch the attack using the `launch.sh` script, which allows to specify the parameters in a more user-friendly way. If this is the chosen way to launche the attack, these are the steps:
+  1. open the `launch.sh` script and edit the parameters at the top of the file to specify the desired attack configuration
+  2. launching the script from a linux terminal (or WSL on Windows) using the command: `./launch.sh` from the root directory.
 
-Using CUDA device for hardware acceleration
-Crafting FC Poisons: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2000/2000 [00:06<00:00, 310.66it/s, loss=0.77]
-plotting.py:21: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
-  plt.show()
-Original Prediction: 0.0
-Clean Model Accuracy: 0.74
-Training DNN model with lr 0.1: 100%|██████████████████████████████████████████████████████████████████████████████████| 50/50 [00:00<00:00, 51.82it/s, Train acc=0.943, Train loss=0.108, Val acc=0, Val loss=0]
-Poisoned Prediction: 1.0; Success: True
-Poisoned Model Accuracy: 0.72
+The script will just populate the python command with all the parameters and launch it, printing it on the screen just to allow the user to see what is being executed.
 
+---
 
-$ python3 poison_attacks.py -file_name model_mnist_lr0.0075
-Using CUDA device for hardware acceleration
-Crafting FC Poisons: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2000/2000 [00:07<00:00, 268.68it/s, loss=22.7]
-/mnt/c/Users/romat/OneDrive - uniroma1.it/Magistrale/2° Anno/2o Semestre/Machine Learning Security/Progetto/MLsec-project/poisoning/plotting.py:21: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
-  plt.show()
-Original Prediction: 0
-Clean Model Accuracy: 0.9266
-Training DNN model with lr 0.1: 100%|███████████████████████████████████████████████████████████████████████████████████| 50/50 [01:29<00:00,  1.79s/it, Train acc=0.93, Train loss=0.252, Val acc=0, Val loss=0]
-Poisoned Prediction: 0; Success: False
-Poisoned Model Accuracy: 0.9196
+<br>
+<br>
+
+# Considerations
+After some testing, I've made up the following guidelines to suggest the choice of the various attack parameters based on the different datasets and attack techniques. These are not strict rules, but they can be used as a starting point for further experimentation.
 
 
+## Base and Target class
+
+For the cat vs non-cat dataset, it is suggested to choose the base class as `1` (non-cat) and the target class as `0` (cat). This is because the cat class is more complex and has more features than the non-cat class, making it easier to generate poisons that can fool the model into misclassifying cats as non-cats. Trying to invert the classes makes every attack fail and the poisoned model to lose accuracy.
+
+Generally, for the MNIST dataset, it is suggested to choose pairs of classes that are visually similar, such as 7 and 1 or 3 and 8.
+
+Some of the best couples are:
+
+| Target | Base |
+| --- | :---: |
+| 7 | 1 |
+| 3 | 8 |
+| 9 | 4 |
+| 5 | 6 |
 
 
+On the other hand, for the CIFAR-10 dataset, it is suggested to choose pairs of classes that share similare features in the images, like the background, the shape of the body, etc... There are 10 classes in the CIFAR-10 dataset, here is the official mapping:
+
+| Class | Label |
+| --- | :---: |
+| airplane | 0 |
+| automobile | 1 |
+| bird | 2 |
+| cat | 3 |
+| deer | 4 |
+| dog | 5 |
+| frog | 6 |
+| horse | 7 |
+| ship | 8 |
+| truck | 9 |
+
+Which brings us with the following pairs of classes that can be used for the attack:
+
+| Target | Base |
+| --- | :---: |
+| 0 | 2 |
+| 1 | 9 |
+| 3 | 5 |
+| 4 | 7 |
+
+
+---
+
+## Feature Collision Attack
+
+### Cat vs Non-Cat parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 30-50 |
+| epsilon | 0.03 - 0.06 | 
+| watermark_opacity | 0.2 - 0.3 |
+| Step Size | 0.01 |
+| iterations | 2000 |
+
+### MNIST parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 10-30 |
+| epsilon | 0.10 - 0.20 | 
+| watermark_opacity | 0.1 - 0.2 |
+| step size | 0.01 - 0.05 | 
+| iterations | 1000 | 
+
+### CIFAR-10 parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 40-60 |
+| epsilon | 0.03 - 0.06 |
+| watermark_opacity | 0.2 - 0.3 |
+| Step Size | 0.01 |
+| iterations | 2000 |
+
+---
+
+## Convex Polytope Attack
+
+### Cat vs Non-Cat parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 50-100 |
+| epsilon | 0.04- 0.08 |
+| watermark_opacity | 0.2 - 0.3 |
+| Step Size | 0.005 - 0.01 |
+| iterations | 3000-4000 |
+
+### MNIST parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 30-50 |
+| epsilon | 0.10 - 0.30 |
+| watermark_opacity | 0.0 - 0.1 |
+| Step Size | 0.01 |
+| iterations | 2000 |
+
+### CIFAR-10 parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 50-100 |
+| epsilon | 0.04 - 0.08 |
+| watermark_opacity | 0.0 - 0.2 |
+| Step Size | 0.005 - 0.01 |
+| iterations | 3000-4000 |
+
+---
+
+## Gradient Matching Attack
+
+### Cat vs Non-Cat parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 40-80 |
+| epsilon | 0.05 - 0.10 |
+| watermark_opacity | 0.0 |
+| Step Size | 0.01 - 0.05 |
+| iterations | 4000-5000 |
+
+### MNIST parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 20-40 |
+| epsilon | 0.15 - 0.30 |
+| watermark_opacity | 0.0 |
+| Step Size | 0.05 |
+| iterations | 2000-3000 |
+
+### CIFAR-10 parameters
+| Parameter | Suggested Value |
+| --- | :---: |
+| poison budget | 50-100 |
+| epsilon | 0.05 - 0.10 |
+| watermark_opacity | 0.0 |
+| Step Size | 0.01 - 0.05 |
+| iterations | 4000-5000 |

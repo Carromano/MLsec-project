@@ -98,5 +98,57 @@ def craft_polytope_poisons(extractor, base_imgs, target_img, step_size, iteratio
 
 
 
-def craft_gradient_matching_poisons():
-    pass  # TODO: implement gradient matching poisons crafting
+"""
+Computes gradient matching poisons and returns the perturbation delta for each base image
+so that the gradients of the poisoned images align with the gradients of the target image.
+"""
+def craft_gradient_matching_poisons(extractor, base_imgs, target_img, step_size, iterations=1000, epsilon=0.03, watermark_opacity=0.3):
+    extractor.eval()
+
+    # initialize poisons and add low-opacity watermark
+    x_poisons = (1 - watermark_opacity) * base_imgs + watermark_opacity * target_img
+    x_poisons = x_poisons.clone().detach().requires_grad_(True)
+
+    # prepare target image to extract gradients
+    t_img = target_img.unsqueeze(0).clone().detach().requires_grad_(True)
+
+    # extract features of target image
+    target_features = extractor.features(t_img)
+
+    # compute gradients of target features wrt target image
+    target_grads = torch.autograd.grad(target_features.sum(), t_img)[0]
+
+    # duplicate target gradients as many times as base images to later compute loss
+    target_grads = target_grads.detach().repeat(base_imgs.size(0), 1, 1, 1)
+
+    progress_bar = tqdm.trange(iterations, desc='Crafting Gradient Matching Poisons')
+
+    # iterative optimization
+    for _ in progress_bar:
+        # extract features of poison data
+        poison_features = extractor.features(x_poisons)
+
+        # compute gradients of poison features wrt poisoned samples
+        # create_graph=True is necessary to backpropagate through this gradient calculation
+        poison_grads = torch.autograd.grad(poison_features.sum(), x_poisons, create_graph=True)[0]
+
+        # compute individual loss for each poisoned datapoint
+        # MSE between poison gradients and target gradients
+        loss = torch.nn.functional.mse_loss(poison_grads, target_grads, reduction='none').mean(dim=(1, 2, 3))
+
+        # compute gradients of loss wrt poisoned sample
+        grads = torch.autograd.grad(loss.sum(), x_poisons)[0]
+
+        with torch.no_grad():
+            # optimize poisons using sign-based gradient descent (FGSM-like)
+            x_poisons -= step_size * grads.sign()
+
+            # constrain within allowed eps-perturbation and [0, 1] domain
+            delta = torch.clamp(x_poisons - base_imgs, min=-epsilon, max=epsilon)
+            x_poisons.data = torch.clamp(base_imgs + delta, min=0.0, max=1.0)
+
+            # add logging of loss to progress bar during optimization
+            progress_bar.set_postfix({'loss': loss.mean().item()})
+
+    # return poison perturbation (not full poisoned sample)
+    return (x_poisons.detach() - base_imgs).cpu()

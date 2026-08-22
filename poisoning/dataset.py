@@ -11,15 +11,15 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 
 
+# flattens data after the first dimension. 
+#   samples are organized by row: (num_samples, num_features)
 def flatten(data):
-    """ flattens data after the first dimension. We organize samples by row: (num_samples, num_features) """
     data = data.reshape((data.shape[0], -1))
     feat_size = data.shape[1]
     return data, feat_size
 
-
+# compute mean and stdev on Dataset of torch tensors
 def compute_mean_std(data):
-    """ compute mean and stdev on Dataset of torch tensors """
     loader = DataLoader(data, batch_size=10, shuffle=False)
     mean, std = 0., 0.
     count = 0
@@ -29,7 +29,8 @@ def compute_mean_std(data):
         count += data.shape[0]
     return mean/count, std/count
 
-
+# Dataset Loaders
+## load cat vs non-cat dataset from h5 files
 def load_cat_noncat():
     # load train set
     train_dataset = h5py.File(constants.data_dir / 'train_catvnoncat.h5', "r")
@@ -51,7 +52,7 @@ def load_cat_noncat():
            torch.from_numpy(test_x), torch.from_numpy(test_y), \
            classes
 
-
+## utility function to unpack MNIST dataset from gzip files
 def mnist_unpack(fname):
     with gzip.open(fname, 'rb') as f:
         magic, size = struct.unpack(">II", f.read(8))
@@ -60,13 +61,14 @@ def mnist_unpack(fname):
         data = data.reshape((size, nrows, ncols))
         return data
 
-
+## load MNIST dataset from torchvision
 def load_mnist():
     train = torchvision.datasets.MNIST(constants.data_dir, train=True, download=True)
     test = torchvision.datasets.MNIST(constants.data_dir, train=False, download=True)
     return train.data, train.targets, test.data, test.targets, train.classes
 
 
+# utility function to get a dataset object with train and test loaders  
 def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
     train_x, train_y, test_x, test_y, classes = load_mnist() if dataset_name == 'mnist' else load_cat_noncat()
     # get shape of images, dropping the first dimension which is the number of samples
@@ -90,6 +92,7 @@ def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
     return dataset
 
 
+# Dataset class to hold train and test loaders, and other dataset information
 class Dataset:
     def __init__(self, name, trainloader, testloader, mean, std, orig_shape, flattened_shape, class_num):
         self.name = name
