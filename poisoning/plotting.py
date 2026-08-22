@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-
+# function that plots a grid of images, with M rows and N columns, and saves the figure to a file if filename is provided
 def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbation=False):
 
     # determine the number of rows needed to display all images

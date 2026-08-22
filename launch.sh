@@ -13,16 +13,16 @@ attack_type='fc'
 
 
 # OPTIONAL PARAMETERS
-target=6
-base=5
+target=8
+base=3
 
 
 # ATTACK PARAMETERS
-poison_num=30
-epsilon=0.20
-watermark_opacity=0.15
-step_size=0.02
-iterations=1000
+poison_num=50
+epsilon=0.05
+watermark_opacity=0.1
+step_size=0.01
+iterations=2000
 
 
 # ATTACK COMMAND 

@@ -10,6 +10,11 @@ Methodologies Evaluated:
 
 All the methodologies are finally evaluated against a third model, trained by myself on the `CIFAR-10` dataset.
 
+## Cifar-10 training
+
+I've written the train_cifar10.py script to train a model on the CIFAR-10 dataset and freeze it for later use in poisoning attacks. The script loads the CIFAR-10 dataset from torchvision, defines a neural network architecture from the one used in the last lab of the course, trains the model on the dataset, and saves it to a file which respected the naming convention expected by the poison_attacks.py script. The model is trained for 50 epochs with a learning rate of 0.0075, and the final accuracy on the test set is printed to the console. The model is then saved to a file named "model_cifar10_lr0.0075".
+
+
 ---
 
 ## Requirements
@@ -89,6 +94,12 @@ The following parameters are optional and can be used to specify the base class 
 - `-poisons`: the number of poison samples to generate (default: 10)
 - `-base_class`: the label for the base class (default: 1)
 - `-target_class`: the label for the target class (default: 0)
+- `-epsilon`: the maximum perturbation allowed for the poison samples (default: 0.03)
+- `-watermark_opacity`: the opacity of the watermark to be applied to the poison samples (default: 0.3)
+- `-step_size`: the step size for the optimization algorithm (default: 0.01)
+- `-iterations`: the number of iterations for the optimization algorithm (default: 2000)
+- `-lr`: the learning rate for the optimization algorithm (default: 0.1)
+- `-epochs`: the number of epochs for the optimization algorithm (default: 50)
 
 **Alternatively**, is it possible to launch the attack using the `launch.sh` script, which allows to specify the parameters in a more user-friendly way. If this is the chosen way to launche the attack, these are the steps:
   1. open the `launch.sh` script and edit the parameters at the top of the file to specify the desired attack configuration

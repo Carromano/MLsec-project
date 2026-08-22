@@ -68,9 +68,36 @@ def load_mnist():
     return train.data, train.targets, test.data, test.targets, train.classes
 
 
+## load CIFAR-10 dataset from torchvision
+def load_cifar10():
+    train = torchvision.datasets.CIFAR10(constants.data_dir, train=True, download=True)
+    test = torchvision.datasets.CIFAR10(constants.data_dir, train=False, download=True)
+    
+    # convert data from numpy arrays to torch tensors for compatibility with the rest of the code
+    train_x = torch.from_numpy(train.data).float()
+    test_x = torch.from_numpy(test.data).float()
+    
+    # convert labels to torch tensors
+    train_y = torch.tensor(train.targets, dtype=torch.long)
+    test_y = torch.tensor(test.targets, dtype=torch.long)
+
+    # get classes from the train dataset
+    classes = train.classes
+    return train_x, train_y, test_x, test_y, classes
+
+
 # utility function to get a dataset object with train and test loaders  
 def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
+
     train_x, train_y, test_x, test_y, classes = load_mnist() if dataset_name == 'mnist' else load_cat_noncat()
+
+    if dataset_name == 'mnist':
+        train_x, train_y, test_x, test_y, classes = load_mnist()
+    elif dataset_name == 'cifar10':
+        train_x, train_y, test_x, test_y, classes = load_cifar10()
+    else:
+        train_x, train_y, test_x, test_y, classes = load_cat_noncat()
+
     # get shape of images, dropping the first dimension which is the number of samples
     data_shape = train_x.shape[1:]
     std, mean = None, None
@@ -82,11 +109,13 @@ def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
     else:
         # normalize to [0, 1]
         train_x, test_x = train_x/255., test_x/255.
+
     # flatten dataset
     train_x, feat_size = flatten(train_x)
     test_x, _ = flatten(test_x)
     trainset = TensorDataset(train_x, train_y)
     testset = TensorDataset(test_x, test_y)
+
     dataset = Dataset(dataset_name, DataLoader(trainset, batch_size=bs, shuffle=True), DataLoader(testset, batch_size=bs),
                       mean, std, orig_shape=data_shape, flattened_shape=feat_size, class_num=len(classes))
     return dataset
