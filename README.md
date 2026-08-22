@@ -197,7 +197,6 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 50-100 |
 | epsilon | 0.04- 0.08 |
-| watermark_opacity | 0.2 - 0.3 |
 | Step Size | 0.005 - 0.01 |
 | iterations | 3000-4000 |
 
@@ -206,7 +205,6 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 30-50 |
 | epsilon | 0.10 - 0.30 |
-| watermark_opacity | 0.0 - 0.1 |
 | Step Size | 0.01 |
 | iterations | 2000 |
 
@@ -215,7 +213,6 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 50-100 |
 | epsilon | 0.04 - 0.08 |
-| watermark_opacity | 0.0 - 0.2 |
 | Step Size | 0.005 - 0.01 |
 | iterations | 3000-4000 |
 
@@ -228,7 +225,6 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 40-80 |
 | epsilon | 0.05 - 0.10 |
-| watermark_opacity | 0.0 |
 | Step Size | 0.01 - 0.05 |
 | iterations | 4000-5000 |
 
@@ -237,7 +233,6 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 20-40 |
 | epsilon | 0.15 - 0.30 |
-| watermark_opacity | 0.0 |
 | Step Size | 0.05 |
 | iterations | 2000-3000 |
 
@@ -246,6 +241,5 @@ Which brings us with the following pairs of classes that can be used for the att
 | --- | :---: |
 | poison budget | 50-100 |
 | epsilon | 0.05 - 0.10 |
-| watermark_opacity | 0.0 |
 | Step Size | 0.01 - 0.05 |
 | iterations | 4000-5000 |

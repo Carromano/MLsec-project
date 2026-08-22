@@ -109,7 +109,7 @@ def main(model, data, dataset_name, attack_type, base_class, target_class, poiso
         print(f"\nParameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
 
         # get poison perturbations using POLYTOPE attack
-        delta_polytope = craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
+        delta_polytope = craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon)
         delta_on_device = delta_polytope.to(model.device)
 
         # plot clean and poisoned images

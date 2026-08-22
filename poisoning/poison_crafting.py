@@ -35,7 +35,7 @@ def craft_fc_poisons(extractor, base_imgs, target_img, step_size, iterations=100
 
         with torch.no_grad():
             # optimize poisons
-            x_poisons -= step_size * grads.sign() # Uso del segno per robustezza (FGSM-like)
+            x_poisons -= step_size * grads.sign() 
 
             # constrain within allowed eps-perturbation and [0, 1] domain
             delta = torch.clamp(x_poisons - base_imgs, min=-epsilon, max=epsilon)
@@ -53,23 +53,22 @@ def craft_fc_poisons(extractor, base_imgs, target_img, step_size, iterations=100
 Computes polytope (convex/bullseye) poisons and returns the perturbation delta 
 for each base image such that their average feature representation collides with the target features.
 """
-def craft_polytope_poisons(extractor, base_imgs, target_img, step_size, iterations=1000, epsilon=0.03, watermark_opacity=0.3):
-    extractor.eval()
+def craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=1000, epsilon=0.03):
+    model.eval()
 
     # 1. Initialize poisons and add low-opacity watermark (matching Feature Collision baseline)
-    x_poisons = (1 - watermark_opacity) * base_imgs + watermark_opacity * target_img
     x_poisons = x_poisons.clone().detach().requires_grad_(True)
 
     # 2. Extract features of the target image (no gradient needed for target)
     with torch.no_grad():
-        target_features = extractor.features(target_img) # Shape: (1, feature_dim)
+        target_features = model.features(target_img) # Shape: (1, feature_dim)
 
     progress_bar = tqdm.trange(iterations, desc='Crafting Polytope Poisons')
 
     # 3. Iterative optimization loop
     for _ in progress_bar:
         # Extract features of the current poison batch
-        poison_features = extractor.features(x_poisons) # Shape: (num_poisons, feature_dim)
+        poison_features = model.features(x_poisons) # Shape: (num_poisons, feature_dim)
 
         # Compute the centroid (mean) of the poison features in the batch
         # This implements the 1/k sum constraint for the polytope center (Bullseye strategy)
@@ -102,11 +101,10 @@ def craft_polytope_poisons(extractor, base_imgs, target_img, step_size, iteratio
 Computes gradient matching poisons and returns the perturbation delta for each base image
 so that the gradients of the poisoned images align with the gradients of the target image.
 """
-def craft_gradient_matching_poisons(extractor, base_imgs, target_img, step_size, iterations=1000, epsilon=0.03, watermark_opacity=0.3):
+def craft_gradient_matching_poisons(extractor, base_imgs, target_img, step_size, iterations=1000, epsilon=0.03):
     extractor.eval()
 
     # initialize poisons and add low-opacity watermark
-    x_poisons = (1 - watermark_opacity) * base_imgs + watermark_opacity * target_img
     x_poisons = x_poisons.clone().detach().requires_grad_(True)
 
     # prepare target image to extract gradients
