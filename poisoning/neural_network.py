@@ -36,7 +36,6 @@ class NeuralNetwork(nn.Module):
         """
         @param shape: list with size of each layer
         @param activations: type of activation function for each layer (all neurons in a layer use same activation)
-        @param lr: learning rate
         @loss_fn: loss function to use
         @optim: optimization algorithm to use
         """
@@ -45,24 +44,31 @@ class NeuralNetwork(nn.Module):
         self.activations = activations
         self.is_binary = shape[-1] == 1
         self.device = get_torch_device()
+
         # create list of layers
         layer_list = [nn.Linear(x, y) for x, y in zip(shape[:-2], shape[1:-1])]
+
         # create list of activations
         activations = [act_dict[a]() for a in activations]
+
         # create list of layers alternating with activations: [layer1, act1, ..., layerN, actN]
         layer_act_list = list(itertools.chain.from_iterable(zip(layer_list, activations)))
+
         # save index of penultimate layer for feature extraction
         self.feature_extractor_layer = len(layer_act_list) -1
+
         # add last layer and, if output is binary, sigmoid at last layer to squash to [0,1] interval
         layer_act_list.append(nn.Linear(shape[-2], shape[-1]))
         if shape[-1] == 1:
             layer_act_list.append(nn.Sigmoid())
+
         # create sequential module. It chains all the layers and activations sequentially
         self.model = nn.Sequential(*layer_act_list).to(self.device)
         if loss_fn is None:
             self.loss_fn = F.binary_cross_entropy if self.is_binary else F.cross_entropy
         else:
             self.loss_fn = loss_fn
+
         # initialize optimizer
         self.optimizer_type = optimizer
 
@@ -78,12 +84,15 @@ class NeuralNetwork(nn.Module):
         """ return a copy of the model with new output layer of shape out_features """
         # copy base model
         model_copy = copy.deepcopy(self)
+
         # update last layer with new output shape
         output_layer = nn.Linear(self.model[self.feature_extractor_layer+1].in_features, out_features)
         model_copy.model = torch.nn.Sequential(*self.model[:self.feature_extractor_layer+1], output_layer)
+
         # add sigmoid if binary classification
         if out_features == 1:
             model_copy.model.add_module(f'{len(model_copy.model)}', nn.Sigmoid())
+
         return model_copy.to(self.device)
 
     def _pred(self, outputs):
@@ -109,14 +118,17 @@ class NeuralNetwork(nn.Module):
         """ fit (train) the model
         @param trainloader: training set in form of dataloader
         @param valloader: validation set in form of dataloader
+        @param lr: learning rate
         @param epochs: number of iterations over the dataset to train
         @param val_interval: interval between output logs
         @return: loss and accuracy history
         """
+
         loss_history = {'train': [], 'val': []}
         acc_history = {'train': [], 'val': []}
         optimizer = self.optimizer_type(self.parameters(), lr=lr, weight_decay=1e-5)
         self.train()
+
         with tqdm(range(epochs), desc=f'Training DNN model with lr {lr}', file=sys.stdout) as pbar:
             val_acc, val_loss = 0., 0.
             for epoch in pbar:
@@ -159,12 +171,15 @@ class NeuralNetwork(nn.Module):
                 x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
                 # predict outputs
                 pred = self(x_batch)
+
                 # compute loss if compute_loss==True
                 if compute_loss:
                     loss += self.loss_fn(pred, y_batch)
+
                 # get number of correct predictions
                 correct += (self._pred(pred) == y_batch).sum().item()
                 total += x_batch.shape[0]
+                
         # return accuracy and loss if requested, otherwise only accuracy
         accuracy = correct/total
         if compute_loss:
