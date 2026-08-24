@@ -28,8 +28,7 @@ def craft_fc_poisons(extractor, base_imgs, target_img, step_size, iterations=100
 
         # compute individual loss for each poisoned datapoint
         # L2 distance: ||f(p) - f(t)||^2
-        loss = torch.nn.functional.mse_loss(poison_features, target_features, reduction='sum')
-        # loss = 
+        loss = torch.nn.functional.mse_loss(poison_features, target_features, reduction='sum') 
 
         # compute gradients of loss wrt poisoned sample
         grads = torch.autograd.grad(loss, x_poisons)[0]

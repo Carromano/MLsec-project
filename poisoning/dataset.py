@@ -29,6 +29,7 @@ def compute_mean_std(data):
         count += data.shape[0]
     return mean/count, std/count
 
+
 # Dataset Loaders
 ## load cat vs non-cat dataset from h5 files
 def load_cat_noncat():
@@ -52,6 +53,7 @@ def load_cat_noncat():
            torch.from_numpy(test_x), torch.from_numpy(test_y), \
            classes
 
+
 ## utility function to unpack MNIST dataset from gzip files
 def mnist_unpack(fname):
     with gzip.open(fname, 'rb') as f:
@@ -60,6 +62,7 @@ def mnist_unpack(fname):
         data = np.frombuffer(f.read(), dtype=np.dtype(np.uint8).newbyteorder('>'))
         data = data.reshape((size, nrows, ncols))
         return data
+
 
 ## load MNIST dataset from torchvision
 def load_mnist():
@@ -74,8 +77,12 @@ def load_cifar10():
     test = torchvision.datasets.CIFAR10(constants.data_dir, train=False, download=True)
     
     # convert data from numpy arrays to torch tensors for compatibility with the rest of the code
-    train_x = torch.from_numpy(train.data).float()
-    test_x = torch.from_numpy(test.data).float()
+    # train_x = torch.from_numpy(train.data).float()
+    # test_x = torch.from_numpy(test.data).float()
+
+    # Da numpy (N, H, W, C) a PyTorch FloatTensor (N, C, H, W)
+    train_x = torch.from_numpy(train.data).permute(0, 3, 1, 2).float()
+    test_x = torch.from_numpy(test.data).permute(0, 3, 1, 2).float()
     
     # convert labels to torch tensors
     train_y = torch.tensor(train.targets, dtype=torch.long)
@@ -110,16 +117,20 @@ def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
         # normalize to [0, 1]
         train_x, test_x = train_x/255., test_x/255.
 
-    # flatten dataset
-    train_x, feat_size = flatten(train_x)
-    test_x, _ = flatten(test_x)
+    # CIFAR-10 goes to a ConvNet, so we don't flatten it. MNIST and Cat-vs-NonCat go to a MLP, so we flatten them.
+    if dataset_name == 'cifar10':
+        feat_size = data_shape
+    else:
+        # flatten dataset (mnist / cat_noncat vanno a NeuralNetwork, che si aspetta vettori flat)
+        train_x, feat_size = flatten(train_x)
+        test_x, _ = flatten(test_x)
+        
     trainset = TensorDataset(train_x, train_y)
     testset = TensorDataset(test_x, test_y)
 
     dataset = Dataset(dataset_name, DataLoader(trainset, batch_size=bs, shuffle=True), DataLoader(testset, batch_size=bs),
                       mean, std, orig_shape=data_shape, flattened_shape=feat_size, class_num=len(classes))
     return dataset
-
 
 # Dataset class to hold train and test loaders, and other dataset information
 class Dataset:

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 
 from poisoning import dataset
-from poisoning.neural_network import NeuralNetwork, get_torch_device
+from poisoning.neural_network import CIFARConvNet, NeuralNetwork, get_torch_device
 from poisoning.plotting import plot_images
 from poisoning.poison_crafting import craft_fc_poisons
 from poisoning.poison_crafting import craft_polytope_poisons
@@ -43,7 +43,8 @@ def main(model, data, dataset_name, attack_type, base_class, target_class, poiso
 
     if dataset_name == "cat":
 
-        print("Dataset in use: catvsnoncat")
+        print("Dataset in use: catvsnoncat") 
+
     elif dataset_name == "mnist":
 
         print("Dataset in use: MNIST")
@@ -194,7 +195,10 @@ def get_data_and_model(file_name, dataset_name):
     # get dataset and move data to correct device (cpu or cuda)
     data = dataset.get_dataset(dataset_name=dataset_name, bs=128)
     # used to store training loss and accuracy for each learning rate used
-    model = NeuralNetwork.load(file_name)
+    if dataset_name == "cifar10":
+        model = CIFARConvNet(num_classes=data.class_num)
+    else:
+        model = NeuralNetwork.load(file_name)
     model.to(device)
     return model, data
 
@@ -205,18 +209,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # MANDATORY parameters
-    ## model and dataset name
     parser.add_argument('-file_name', help='model file name', required=True)
-    ## attack type
     parser.add_argument('-attack', help='attack type (fc, polytope, gradient)', required=True)
 
-    # OPTIONAL parameters 
-    ## base class label
-    parser.add_argument('-base_class', type=int, default=1, help='Label for the base class')
-    ## target class label
-    parser.add_argument('-target_class', type=int, default=0, help='Label for the target class')
-
     # ATTACK parameters
+    parser.add_argument('-base_class', type=int, default=1, help='Label for the base class')
+    parser.add_argument('-target_class', type=int, default=0, help='Label for the target class')
     parser.add_argument('-poison_num', type=int, default=10, help='Number of poison samples to generate')
     parser.add_argument('-epsilon', type=float, default=0.03, help='Maximum perturbation allowed for each poison sample')
     parser.add_argument('-watermark_opacity', type=float, default=0.3, help='Opacity of the watermark applied to the poison samples')
@@ -232,14 +230,17 @@ if __name__ == '__main__':
     model, data = get_data_and_model(args.file_name, dataset_name)
 
     # get the parameters from the command line arguments
-    attack_type = args.attack.lower()
     base_class = args.base_class
     target_class = args.target_class
+    
+    attack_type = args.attack.lower()
     poison_num = args.poison_num
+
     epsilon = args.epsilon
     step_size = args.step_size
     iterations = args.iterations
     watermark_opacity = args.watermark_opacity
+    
 
     # launching the attack
     main(model, data, dataset_name, attack_type, base_class, target_class, poison_num, epsilon, step_size, iterations, watermark_opacity)
