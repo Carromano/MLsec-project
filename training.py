@@ -4,6 +4,7 @@ import argparse
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.utils.data import TensorDataset
 from poisoning.dataset import get_dataset
 from poisoning.neural_network import CIFARConvNet, NeuralNetwork, get_torch_device
 
@@ -16,7 +17,7 @@ def train_and_freeze_cifar(lr, epochs):
     # Model initializationma 
     model = CIFARConvNet(num_classes=data.class_num)
 
-    # spltting data
+    # splitting data into training and validation
     training = data.trainloader
     train_portion = int(0.8 * len(training.dataset))
     val_portion = len(training.dataset) - train_portion
@@ -32,7 +33,7 @@ def train_and_freeze_cifar(lr, epochs):
     
     # 4. Valutazione Clean Accuracy
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.2f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
     
     # 5. Congelamento del Feature Extractor per Transfer Learning
     model.freeze_extractor()
@@ -50,14 +51,14 @@ def train_and_freeze_mnist(lr, epochs):
 
     data = get_dataset('mnist', bs=128, normalize_to_mean_std=False)    
 
-    shape = [data.input_dim, 256, 128, data.class_num]
+    shape = [data.flattened_shape, 256, 128, data.class_num]
     activations = ["relu", "relu", "identity"]
     loss_fn = F.cross_entropy
     
     # input_dim: 28*28 = 784, output_dim: 10 classi
-    model = NeuralNetwork(input_dim=data.input_dim, output_dim=data.class_num)
+    model = NeuralNetwork(shape=shape, activations=activations, loss_fn=loss_fn)
 
-    # spltting data
+    # splitting data
     training = data.trainloader
     train_portion = int(0.8 * len(training.dataset))
     val_portion = len(training.dataset) - train_portion
@@ -72,15 +73,15 @@ def train_and_freeze_mnist(lr, epochs):
     
     # 4. Valutazione Clean Accuracy (Baseline)
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.2f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
     
     # 5. Congelamento del Feature Extractor (Backbone)
-    model.freeze_extractor()
+    model.freeze_extractor(True)
     print("Feature Extractor frozen.")
     
     # 6. Salvataggio del Checkpoint
     os.makedirs("./models", exist_ok=True)
-    save_path = f"./models/model_mnist_lr{lr}_{epochs}epochs"
+    save_path = f"./model_mnist_lr{lr}_{epochs}epochs"
     model.save(save_path)
     print(f"Checkpoint saved with success in: {save_path}\n")
 
@@ -92,10 +93,14 @@ def train_and_freeze_cat(lr, epochs):
     data = get_dataset('cat', bs=128, normalize_to_mean_std=False)    
     
     # 2. Inizializzazione del modello MLP (NeuralNetwork)
-    # input_dim: 12288, output_dim: data.class_num (2 classi o 1 logit a seconda della testa)
-    model = NeuralNetwork(input_dim=data.input_dim, output_dim=data.class_num)
+    # TODO - FIX QUI
+    shape = [data.flattened_shape, 256, 128, data.class_num]
+    activations = ["relu", "relu", "identity"]
+    loss_fn = F.cross_entropy
 
-    # spltting data
+    model = NeuralNetwork(shape=shape, activations=activations, loss_fn=loss_fn)
+
+    # splitting data
     training = data.trainloader
     train_portion = int(0.8 * len(training.dataset))
     val_portion = len(training.dataset) - train_portion
@@ -111,15 +116,15 @@ def train_and_freeze_cat(lr, epochs):
     
     # 4. Valutazione Clean Accuracy (Baseline)
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.2f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
     
     # 5. Congelamento del Feature Extractor per Transfer Learning / Feature Collision
-    model.freeze_extractor()
+    model.freeze_extractor(True)  # freeze all layers except the last one
     print("Feature Extractor frozen.")
     
     # 6. Salvataggio del Checkpoint
     os.makedirs("./models", exist_ok=True)
-    save_path = f"./models/model_cat_lr{lr}_{epochs}epochs"
+    save_path = f"./model_cat_lr{lr}_{epochs}epochs"
     model.save(save_path)
     print(f"Checkpoint saved with success in: {save_path}\n")
 
@@ -130,7 +135,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-dataset', type=str, default='cifar10', help='Dataset to use (default: cifar10)')
-    parser.add_argument('-lr', type=float, default=0.070, help='Learning rate for training')
+    parser.add_argument('-lr', type=float, default=0.075, help='Learning rate for training')
     parser.add_argument('-epochs', type=int, default=80, help='Number of epochs for training')
 
     args = parser.parse_args()
