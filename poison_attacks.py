@@ -46,7 +46,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
     elif dataset_name == "mnist":
         print("Dataset in use: MNIST")
 
-    elif dataset_name == "cifar":
+    elif dataset_name == "cifar10":
         print("Dataset in use: CIFAR-10")
 
     print("\n-----------------")
@@ -57,6 +57,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         # print the parameters of the attack
         print("Feature Collision Poisoning Attack Implementation\n")
         print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
+        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using FC attack formula
         delta = craft_fc_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
@@ -99,6 +100,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         # print the parameters of the attack
         print("Polytope Poisoning Attack Implementation\n")
         print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
+        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using POLYTOPE attack
         delta = craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
@@ -140,6 +142,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         # print the parameters of the attack
         print("Gradient Matching Poisoning Attack Implementation\n")
         print(f"\nParameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n")
+        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using GRADIENT MATCHING attack
         delta_gradient = craft_gradient_matching_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon)
@@ -218,9 +221,15 @@ if __name__ == '__main__':
     # get the parameters from the command line arguments
     base_class = args.base_class
     target_class = args.target_class
+
     
     attack_type = args.attack.lower()
     poison_num = args.poison_num
+
+    if dataset_name == "cat":
+        if base_class not in [0, 1] or target_class not in [0, 1]:
+            raise ValueError("For the cat dataset, base_class and target_class must be either 0 (non-cat) or 1 (cat).")
+
 
     epsilon = args.epsilon
     step_size = args.step_size

@@ -24,12 +24,13 @@ def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbat
             # else, display the image in the subplot
             else:
                 sample = 1 - X[idx].cpu().numpy() if grayscale else X[idx].cpu().numpy()
+                
+                if not grayscale and sample.ndim == 3 and sample.shape[0] == 3:
+                    sample = np.transpose(sample, (1, 2, 0))
 
                 # to print correctly also the perturbations of RGB images, we need to normalize them to [0, 1] range
                 if isPerturbation:
                     sample = np.clip(sample, 0.0, 1.0)
-                    if not grayscale and sample.ndim == 3 and sample.shape[0] == 3:
-                        sample = np.transpose(sample, (1, 2, 0))
 
                 ax[i][j].imshow(sample, cmap='gray' if grayscale else None)
                 ax[i][j].set_axis_off()

@@ -3,36 +3,41 @@
 
 # MANDATORY PARAMETERS
 ## CAT
-model_file='model_cat_lr0.0075'
+# model_file='model_cat_lr0.0075'
 
 ## MNIST
 # model_file='model_mnist_lr0.0075'
+# model_file='model_mnist_lr0.001_25epochs'
+
 
 ## CIFAR
-# model_file='model_cifar10_lr0.075_60epochs'
+model_file='model_cifar10_lr0.001_25epochs'
+model_file='./model_cifar10_lr0.001_30epochs'
+# model_file='model_cifar10_lr0.0075_80epochs'
+
 
 ## ATTACKS
-attack_type='fc'
+# attack_type='fc'
 # attack_type='polytope'
-# attack_type='gradient'
+attack_type='gradient'
 
 
 
 # ATTACK PARAMETERS
 
-base=1
+base=2
 target=0
 
-poison_num=200
+poison_num=50
 
-epsilon=0.3
+epsilon=0.05
 step_size=0.01
 iterations=2000
 
-watermark_opacity=0.3
+watermark_opacity=0.0
 
-lr=0.075
-epochs=15
+lr=0.01
+epochs=20
 
 
 

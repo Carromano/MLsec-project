@@ -36,6 +36,7 @@ MLsec-project/
 ├── poison_attacks.py                  # Main attack launcher and experiment runner.
 ├── training.py                        # Script for training and freezing models.
 ├── launch.sh                          # Bash wrapper for launching attacks with parametric python commands.
+├── train.sh                           # Bash wrapper for launching model training with parametric python commands.
 │
 ├── poisoning/                         # Dataset loading and poisoning utilities.
 │   ├── constants.py                   # Shared configuration constants.
@@ -59,6 +60,11 @@ MLsec-project/
 │           ├── train-labels-idx1-ubyte
 │           └── train-labels-idx1-ubyte.gz
 │
+├── images/                            # Visualizations and plots generated during the experiments. 
+│   ├── feature_collision_poisons/           # Feature Collision attack visualizations.
+│   ├── gradient_matching/                   # Gradient Matching attack visualizations.
+│   └── polytope_poisons/                    # Bullseye Polytope attack visualizations.
+|
 ├── models/                            # Pre-trained and frozen model artifacts
 │   └── model_DATASET_lr0.XXX_YYepochs       # Naming pattern for pre-trained models: Dataset name, learning rate, and number of epochs used for training.
 |                                            # The only 2 exceptions are the ones taken from the Laboratory of the course, which are named model_cat_lr0.0075 and model_mnist_lr0.0075.
@@ -170,3 +176,119 @@ Which brings us with the following pairs of classes that can be used for the att
 | 3 | 5 |
 | 4 | 7 |
 
+<br>
+
+# Some parameters suggestion and results
+
+## CIFAR
+
+
+## CIFAR
+model_file='model_cifar10_lr0.0075_80epochs'
+
+## ATTACKS
+attack_type='fc'
+# attack_type='polytope'
+# attack_type='gradient'
+
+
+
+# Examples of Executions
+
+## Cifar Training
+
+I used the following parameters in the train.sh script
+
+dataset='cifar10'
+lr=0.001
+epochs=30
+
+
+## Feature Collision Poisoning Attack on CIFAR-10
+
+Model: model_cifar10_lr0.001_30epochs
+
+Feature Collision Poisoning Attack Implementation
+
+Parameters:
+        Base Class: 2;
+        Target Class: 0;
+        Poison Budget: 60;
+        Step Size: 0.01;
+        Iterations: 2000;
+        Epsilon: 0.05;
+        Watermark Opacity: 0.2
+
+        lr: 0.01;
+        Epochs: 20
+
+--------
+
+Results:
+
+Original Prediction: 0
+Clean Model Accuracy: 0.7641
+
+Training CIFARConvNet model with lr 0.01: 100%|██████████████████████████████████████████████████████████████████████████████████████████| 20/20 [00:21<00:00,  1.06s/it, Train acc=0.753, Train loss=0.703, Val acc=0, Val loss=0]
+
+Poisoned Prediction: 2; Success: True
+Poisoned Model Accuracy: 0.7315
+
+## Polytope Poisoning Attack on CIFAR-10
+
+Model: model_cifar10_lr0.001_30epochs
+
+Polytope Poisoning Attack Implementation
+
+Parameters:
+        Base Class: 2;
+        Target Class: 0;
+        Poison Budget: 60;
+        Step Size: 0.01;
+        Iterations: 2000;
+        Epsilon: 0.04;
+        Watermark Opacity: 0.3
+
+        lr: 0.01;
+        Epochs: 20
+
+--------
+
+Results:
+
+Original Prediction: 0
+Clean Model Accuracy: 0.7641
+
+Training CIFARConvNet model with lr 0.01: 100%|██████████████████████████████████████████████████████████████████████████████████████████| 20/20 [00:19<00:00,  1.01it/s, Train acc=0.754, Train loss=0.703, Val acc=0, Val loss=0]
+
+Poisoned Prediction: 2; Success: True
+Poisoned Model Accuracy: 0.7324
+
+
+## Gradient Matching Poisoning Attack on CIFAR-10
+
+Model: model_cifar10_lr0.001_30epochs
+
+Gradient Matching Poisoning Attack Implementation
+
+Parameters:
+        Base Class: 2;
+        Target Class: 0;
+        Poison Budget: 50;
+        Step Size: 0.01;
+        Iterations: 4000;
+        Epsilon: 0.05;
+
+        lr: 0.01;
+        Epochs: 20
+
+--------
+
+Results:
+
+Original Prediction: 0
+Clean Model Accuracy: 0.7641
+Training CIFARConvNet model with lr 0.01: 100%|█████████████████████████| 20/20 [00:26<00:00,  1.34s/it, Train acc=0.754, Train loss=0.699, Val acc=0, Val loss=0]
+
+Poisoned Prediction: 2; Success: True
+Poisoned Model Accuracy: 0.7154

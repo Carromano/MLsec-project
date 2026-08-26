@@ -130,7 +130,7 @@ class NeuralNetwork(nn.Module):
             param.requires_grad = not flag
 
 
-    def fit(self, trainloader, valloader, lr, epochs, val_interval=10):
+    def fit(self, trainloader, valloader, lr, epochs, val_interval=5):
         """ fit (train) the model
         @param trainloader: training set in form of dataloader
         @param valloader: validation set in form of dataloader
@@ -142,6 +142,7 @@ class NeuralNetwork(nn.Module):
 
         loss_history = {'train': [], 'val': []}
         acc_history = {'train': [], 'val': []}
+
         optimizer = self.optimizer_type(self.parameters(), lr=lr, weight_decay=1e-5)
         self.train()
 
@@ -232,7 +233,7 @@ two architectures interchangeably
 """
 class CIFARConvNet(nn.Module):
 
-    def __init__(self, num_classes=10, loss_fn=None, optimizer=torch.optim.SGD):
+    def __init__(self, num_classes=10, loss_fn=None, optimizer=torch.optim.AdamW):
         """
         @param num_classes: number of output classes for the classification head
         @param loss_fn: loss function to use (defaults to cross entropy, as CIFARConvNet is always multi-class)
@@ -289,9 +290,9 @@ class CIFARConvNet(nn.Module):
             param.requires_grad = not flag
 
     """ return a copy of the model with a new output layer of shape out_features """
-    def from_pretrained(self, num_classes=10, device="cpu"):
+    def from_pretrained(self, num_classes=10):
         self.freeze_extractor()
-        self.fc = nn.Linear(self.feature_dim, num_classes).to(device)
+        self.fc = nn.Linear(self.feature_dim, num_classes).to(self.device)
         for param in self.fc.parameters():
             param.requires_grad = True
         return self
@@ -315,11 +316,13 @@ class CIFARConvNet(nn.Module):
         @param val_interval: interval between output logs
         @return: loss and accuracy history
         """
+
         loss_history = {'train': [], 'val': []}
         acc_history = {'train': [], 'val': []}
+
         # optimize only parameters that require grad (e.g. only the head if extractor is frozen)
         optimizer = self.optimizer_type(filter(lambda p: p.requires_grad, self.parameters()),
-                                         lr=lr, weight_decay=1e-5)
+                                         lr=lr, weight_decay=1e-4)
         self.train()
 
         with tqdm(range(epochs), desc=f'Training CIFARConvNet model with lr {lr}', file=sys.stdout) as pbar:
@@ -389,7 +392,9 @@ class CIFARConvNet(nn.Module):
     @staticmethod
     def load(fname):
         device = get_torch_device()
+
         saved = torch.load(constants.model_dir / fname, map_location=device, weights_only=False)
         model = CIFARConvNet(saved['num_classes'], saved['loss'])
         model.load_state_dict(saved['state_dict'])
-        return model.to(device)
+
+        return model
