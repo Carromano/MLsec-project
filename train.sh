@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # TRAINING PARAMETERS
-# dataset='cat'
+dataset='cat'
 # dataset='mnist'
-dataset='cifar10'
+# dataset='cifar10'
 
-lr=0.001
-epochs=30
+lr=0.01
+epochs=500
 
 # TRAINING
 # I'm printing the python command just to allow the user to see what is being executed, but the script will launch it anyway.

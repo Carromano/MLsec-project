@@ -33,7 +33,7 @@ def train_and_freeze_cifar(lr, epochs):
     
     # 4. Valutazione Clean Accuracy
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}")
     
     # 5. Congelamento del Feature Extractor per Transfer Learning
     model.freeze_extractor()
@@ -73,7 +73,7 @@ def train_and_freeze_mnist(lr, epochs):
     
     # 4. Valutazione Clean Accuracy (Baseline)
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}")
     
     # 5. Congelamento del Feature Extractor (Backbone)
     model.freeze_extractor(True)
@@ -89,40 +89,50 @@ def train_and_freeze_mnist(lr, epochs):
 def train_and_freeze_cat(lr, epochs):
     device = get_torch_device()
 
-    # 1. Caricamento dataset binario Cat vs Non-Cat (flatten 64*64*3 = 12288)
-    data = get_dataset('cat', bs=128, normalize_to_mean_std=False)    
+    # dataset loading and preprocessing
+    data = get_dataset('cat', bs=128)    
     
-    # 2. Inizializzazione del modello MLP (NeuralNetwork)
-    # TODO - FIX QUI
-    shape = [data.flattened_shape, 256, 128, data.class_num]
+    # Model initialization
+    shape = [data.flattened_shape, 32, 16, data.class_num]
     activations = ["relu", "relu", "identity"]
     loss_fn = F.cross_entropy
 
-    model = NeuralNetwork(shape=shape, activations=activations, loss_fn=loss_fn)
+    model = NeuralNetwork(shape=shape, activations=activations, loss_fn=loss_fn, optimizer=torch.optim.Adam)
 
-    # splitting data
+    # Data splitting into training and validation
     training = data.trainloader
-    train_portion = int(0.8 * len(training.dataset))
-    val_portion = len(training.dataset) - train_portion
-    train_data, val_data = torch.utils.data.random_split(training.dataset, [train_portion, val_portion], generator=torch.Generator().manual_seed(42))
 
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size=128, shuffle=False)
+    # Reshape the labels to be of type long for cross-entropy loss
+    X, y = training.dataset.tensors
+    training.dataset.tensors = (X, y.view(-1).long())
+
+    # train_portion = int(0.8 * len(training.dataset))
+    # val_portion = len(training.dataset) - train_portion
+    # train_data, val_data = torch.utils.data.random_split(training.dataset, [train_portion, val_portion], generator=torch.Generator().manual_seed(42))
+
+    train_data = training.dataset
+
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True) #, collate_fn=_cross_entropy_collate)
+    # val_loader = torch.utils.data.DataLoader(val_data, batch_size=128, shuffle=False) #, collate_fn=_cross_entropy_collate)
 
     
-    # 3. Training su Clean Dataset
+    # training on clean Cat-vs-NonCat dataset
     print(f"Starting training on Cat-vs-NonCat... (lr={lr}, epochs={epochs})")
-    model.fit(train_loader, val_loader, lr=lr, epochs=epochs)
+    model.fit(train_loader, None, lr=lr, epochs=epochs, weight_decay=1e-2)
+
+    # Reshape the test labels to be of type long for cross-entropy loss
+    X_test, y_test = data.testloader.dataset.tensors
+    data.testloader.dataset.tensors = (X_test, y_test.view(-1).long())
     
-    # 4. Valutazione Clean Accuracy (Baseline)
+    # baseline clean accuracy evaluation
     clean_acc = model.test(data.testloader)
-    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}%")
+    print(f"Baseline Clean Test Accuracy: {clean_acc:.3f}")
     
-    # 5. Congelamento del Feature Extractor per Transfer Learning / Feature Collision
+    # freezing the feature extractor for transfer learning
     model.freeze_extractor(True)  # freeze all layers except the last one
     print("Feature Extractor frozen.")
     
-    # 6. Salvataggio del Checkpoint
+    # checkpoint saving
     os.makedirs("./models", exist_ok=True)
     save_path = f"./model_cat_lr{lr}_{epochs}epochs"
     model.save(save_path)

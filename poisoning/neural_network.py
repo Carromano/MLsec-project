@@ -130,7 +130,7 @@ class NeuralNetwork(nn.Module):
             param.requires_grad = not flag
 
 
-    def fit(self, trainloader, valloader, lr, epochs, val_interval=5):
+    def fit(self, trainloader, valloader, lr, epochs, val_interval=5, weight_decay=1e-5):
         """ fit (train) the model
         @param trainloader: training set in form of dataloader
         @param valloader: validation set in form of dataloader
@@ -143,7 +143,7 @@ class NeuralNetwork(nn.Module):
         loss_history = {'train': [], 'val': []}
         acc_history = {'train': [], 'val': []}
 
-        optimizer = self.optimizer_type(self.parameters(), lr=lr, weight_decay=1e-5)
+        optimizer = self.optimizer_type(self.parameters(), lr=lr, weight_decay=weight_decay)
         self.train()
 
         with tqdm(range(epochs), desc=f'Training DNN model with lr {lr}', file=sys.stdout) as pbar:
@@ -202,7 +202,7 @@ class NeuralNetwork(nn.Module):
         # return accuracy and loss if requested, otherwise only accuracy
         accuracy = correct/total
         if compute_loss:
-            return accuracy, (loss/total).item()
+            return accuracy, (loss/len(testloader)).item()
         return accuracy
 
  
@@ -379,7 +379,7 @@ class CIFARConvNet(nn.Module):
         # return accuracy and loss if requested, otherwise only accuracy
         accuracy = correct / total
         if compute_loss:
-            return accuracy, (loss / total).item()
+            return accuracy, (loss / len(testloader)).item()
         return accuracy
 
     def save(self, fname):

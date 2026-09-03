@@ -7,3 +7,7 @@ __pycache__/
 
 # datasets
 data/
+
+# logs
+
+raw_runs.log

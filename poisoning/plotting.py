@@ -24,7 +24,8 @@ def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbat
             # else, display the image in the subplot
             else:
                 sample = 1 - X[idx].cpu().numpy() if grayscale else X[idx].cpu().numpy()
-                
+
+                # if the image is RGB and not grayscale, transpose the dimensions to (height, width, channels) for correct display
                 if not grayscale and sample.ndim == 3 and sample.shape[0] == 3:
                     sample = np.transpose(sample, (1, 2, 0))
 

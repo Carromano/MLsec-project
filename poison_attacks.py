@@ -66,9 +66,9 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         delta_on_device = delta.to(model.device)
 
         # print in the ./images folder clean, poisoned images and perturbations
-        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/feature_collision_poisons/{dataset_name}_clean_images.png")
-        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/feature_collision_poisons/{dataset_name}_poisoned_images.png")
-        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/feature_collision_poisons/{dataset_name}_poison_perturbations.png", isPerturbation=True)
+        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/feature_collision_poisons/{dataset_name}_clean_images.png")
+        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/feature_collision_poisons/{dataset_name}_poisoned_images.png")
+        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/feature_collision_poisons/{dataset_name}_poison_perturbations.png", isPerturbation=True)
 
 
         # clean baseline evaluation
@@ -109,9 +109,9 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         delta_on_device = delta.to(model.device)
 
         # plot clean, poisoned images and perturbations
-        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/polytope_poisons/{dataset_name}_clean_images_polytope.png")
-        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/polytope_poisons/{dataset_name}_poisoned_images_polytope.png")
-        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/polytope_poisons/{dataset_name}_poison_perturbations_polytope.png", isPerturbation=True)
+        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/polytope_poisons/{dataset_name}_clean_images_polytope.png")
+        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/polytope_poisons/{dataset_name}_poisoned_images_polytope.png")
+        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/polytope_poisons/{dataset_name}_poison_perturbations_polytope.png", isPerturbation=True)
 
         # clean baseline evaluation
         print("\n--------\n\nResults:\n")
@@ -151,9 +151,9 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         delta_on_device = delta_gradient.to(model.device)
 
         # plot clean, poisoned images and perturbations
-        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/gradient_matching/{dataset_name}_clean_images_gm.png")
-        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/gradient_matching/{dataset_name}_poisoned_images_gm.png")
-        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/gradient_matching/{dataset_name}_poison_perturbations_gm.png", isPerturbation=True)
+        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/gradient_matching/{dataset_name}_clean_images_gm.png")
+        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/gradient_matching/{dataset_name}_poisoned_images_gm.png")
+        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/gradient_matching/{dataset_name}_poison_perturbations_gm.png", isPerturbation=True)
 
         # clean baseline evaluation
         print("\n--------\n\nResults:\n")
