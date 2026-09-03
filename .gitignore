@@ -10,4 +10,4 @@ data/
 
 # logs
 
-raw_runs.log
+raw_runs*.log

@@ -13,11 +13,15 @@ Methodologies Evaluated:
 
 ## Requirements
 
-### Python
-- Python ≥ 3.9
+```txt
+# Python
 
-### External libraries
+Python ≥ 3.9
+
+```
+
 ```sh
+# External libraries
 pip install torch torchvision torchaudio numpy matplotlib
 
 # or
@@ -39,10 +43,11 @@ MLsec-project/
 ├── train.sh                           # Bash wrapper for launching model training with parametric python commands.
 ├── asr_compute.sh                     # Bash script for evaluating the Attack Success Rate (ASR) of the attacks.
 ├── asr_analyze.py                       # Script for analyzing the ASR results and generating a summary report.
+|
 ├── report/                            # Folder containing the generated reports for the ASR
 │   ├── results.csv                    # massive testing results
-│   ├── total_ASR.csv                  # ASR evaluations grouped by parameters combination
-│   └── general_ASR.csv                # ASR evaluations grouped by model and attack type
+│   ├── ASR.csv                        # ASR evaluations grouped by parameters combination
+│   └── ASR_overall.csv                # ASR evaluations grouped by model and attack type
 │
 ├── poisoning/                         # Dataset loading and poisoning utilities.
 │   ├── constants.py                   # Shared configuration constants.
@@ -171,16 +176,23 @@ LR=0.1
 EPOCHS=20
 ```
 
-With these combinations, the script runs 360 tests for each base:target pair. It took me 3 days to run, but I've collected lots of useful data to evaluate the attack success ratios.
+With these combinations, the script runs 360 tests for each base:target pair. It took me 3 days to run, but I've collected lots of useful data.
 
-Finally, to evaluate the Attack Success Rate (ASR) there is the `asr_analyze.py` script that takes the csv report and computes the ASR for each combination at first, and also every model-attack combination.
+Finally, to evaluate the Attack Success Rate (ASR) there is the `asr_analyze.py` script that takes the results.csv and computes the ASR grouping first by the combination of parameters, and then by model-attack combination.
 
-Here are the final results, that can be found in the `.csv` file and in the `overall.csv` file
+Here are the final results, that can be found in the `ASR_overall.csv` file. For more detailed results, the `ASR.csv` file can also be used.
 
-| model | attack | ASR | ASR % |
-| --- | :---: | :---: | :---: |
-| model A | Attack B | 0.20 | 20% |
-
+| Model | Attack | Runs | Successes | ASR | ASR % |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| model_cat_lr0.0075 | fc | 120 | 119 | 0.9917 | 99.17% |
+| model_cifar10_lr0.001_30epochs | fc | 480 | 73 | 0.1521 | 15.21% |
+| model_mnist_lr0.0075 | fc | 480 | 2 | 0.0042 | 0.42% |
+| model_cat_lr0.0075 | gradient | 120 | 120 | 1.0 | 100% |
+| model_cifar10_lr0.001_30epochs | gradient | 480 | 83 | 0.1729 | 17.29% |
+| model_mnist_lr0.0075 | gradient | 480 | 3 | 0.0063 | 0.63% |
+| model_cat_lr0.0075 | polytope | 120 | 114 | 0.95 | 95% |
+| model_cifar10_lr0.001_30epochs | polytope | 480 | 92 | 0.1917 | 19.17% |
+| model_mnist_lr0.0075 | polytope | 480 | 5 | 0.0104 | 1.04% |
 
 ---
 

@@ -13,6 +13,7 @@ Usage:
     python analyze_asr.py results.csv --out asr_summary.csv
     python analyze_asr.py results.csv --min-runs 3
     python analyze_asr.py results.csv --attack fc
+    python analyze_asr.py results.csv --top 5
 """
 
 import argparse
@@ -26,13 +27,8 @@ OUTCOMES_COLS = {"run", "success", "clean_acc", "poisoned_acc"}
 def compute_asr(df: pd.DataFrame, min_runs: int = 1) -> pd.DataFrame:
     # Groups columns for ASR computation, excluding outcomes columns.
     all_group_cols = [c for c in df.columns if c not in OUTCOMES_COLS]
-
-    print(f"Computing ASR with grouping columns: {all_group_cols}")
-
-    print("Grouping by attack...")
     
     df.groupby("attack", dropna=False)
-    print(df.groupby("attack", dropna=False))
 
     results = []
 
@@ -117,7 +113,7 @@ def main():
     print(printed.to_string(index=False))
 
     # Quick overall rollup: ASR per (model, attack) ignoring finer params
-    print("\n=== Overall ASR per model x attack (all param settings pooled) ===")
+    print("\n\nOverall ASR per model x attack (all param settings pooled)\n")
     overall = (df.groupby(["model", "attack"])["success"].agg(n_runs="count", n_success="sum").reset_index())
     overall["asr"] = overall["n_success"] / overall["n_runs"]
     overall["asr %"] = overall["asr"] * 100
