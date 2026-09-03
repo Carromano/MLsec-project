@@ -91,7 +91,6 @@ def main():
     attack_filter = args.attack
     top_n = args.top
     out_file = args.out
-    overall_out_path = args.out.replace(".csv", "_overall.csv")
 
     # read the CSV into a DataFrame
     df = pd.read_csv(csv_path)
@@ -129,6 +128,8 @@ def main():
     if out_file:
         summary.to_csv(out_file, index=False)
         print(f"\nFull per-config summary written to: {out_file}")
+
+        overall_out_path = args.out.replace(".csv", "_overall.csv")
 
         overall.to_csv(overall_out_path, index=False)
         print(f"\nOverall summary written to: {overall_out_path}")

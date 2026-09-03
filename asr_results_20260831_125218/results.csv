@@ -1,4 +1,4 @@
-model,attack,base_class,target_class,epochs,poison_num,lr,poison_num,epsilon,watermark_opacity,iterations,run,success,clean_acc,poisoned_acc
+model,attack,base_class,target_class,epochs,lr,poison_num,epsilon,poison_num,watermark_opacity,step_size,iterations,run,success,clean_acc,poisoned_acc
 model_cat_lr0.0075,fc,1,0,20,0.1,30,0.01,30,0.0,0.01,2000,1,True,0.74,0.72
 model_cat_lr0.0075,fc,1,0,20,0.1,30,0.01,30,0.0,0.01,2000,2,True,0.74,0.72
 model_cat_lr0.0075,fc,1,0,20,0.1,30,0.01,30,0.0,0.01,2000,3,True,0.74,0.72
