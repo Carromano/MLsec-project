@@ -17,9 +17,9 @@ model_file='model_cat_lr0.0075'
 
 
 ## ATTACKS
-# attack_type='fc'
+attack_type='fc'
 # attack_type='polytope'
-attack_type='gradient'
+# attack_type='gradient'
 
 
 
@@ -30,19 +30,18 @@ target=0
 
 poison_num=30
 
-epsilon=0.1
+epsilon=0.01
 step_size=0.01
-iterations=4000
+iterations=2000
 
-watermark_opacity=0.0
+watermark_opacity=0.2
 
-lr=0.05
-epochs=25
+lr=0.1
+epochs=20
 
 
 
 # ATTACK  
-# I'm printing the python command just to allow the user to see what is being executed, but the script will launch it anyway.
-
 echo "python3 poison_attacks.py -file_name $model_file -attack $attack_type -base_class $base -target_class $target -poison_num $poison_num -epsilon $epsilon -step_size $step_size -iterations $iterations -watermark_opacity $watermark_opacity"
+echo ""
 python3 poison_attacks.py -file_name $model_file -attack $attack_type -lr $lr -epochs $epochs -base_class $base -target_class $target -poison_num $poison_num -epsilon $epsilon -step_size $step_size -iterations $iterations -watermark_opacity $watermark_opacity

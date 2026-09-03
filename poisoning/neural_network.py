@@ -13,9 +13,8 @@ act_dict = {'relu': nn.ReLU, 'lrelu': nn.LeakyReLU, 'prelu':nn.PReLU, 'identity'
 
 __torch_device = None
 
-"""
-Function to get the torch device (CPU, CUDA, MPS) to use.
-"""
+
+#Function to get the torch device (CPU, CUDA, MPS) to use.
 def get_torch_device():
     global __torch_device
 
@@ -34,10 +33,8 @@ def get_torch_device():
     return __torch_device
 
 
-"""
-Neural Network class that implements a feedforward neural network with arbitrary number of layers and activation functions.
-Taken from the last laboratory of the course.
-"""
+# Neural Network class that implements a feedforward neural network with arbitrary number of layers and activation functions.
+#   Taken from the last laboratory of the course and used for the CatVsNonCat and MNIST datasets
 class NeuralNetwork(nn.Module):
     
     def __init__(self, shape, activations, loss_fn=None, optimizer=torch.optim.SGD):
@@ -82,17 +79,17 @@ class NeuralNetwork(nn.Module):
         self.optimizer_type = optimizer
 
 
-    """ implement forward method by calling the forward method of the Sequential module self.model """
+    # implement forward method by calling the forward method of the Sequential module self.model
     def forward(self, x):
         return self.model(x)
 
 
-    """ returns the feature representation at the penultimate layer (before classification layer) """
+    # returns the feature representation at the penultimate layer (before classification layer)
     def features(self, x):
         return self.model[:self.feature_extractor_layer+1](x)
 
 
-    """ return a copy of the model with new output layer of shape out_features """
+    # return a copy of the model with new output layer of shape out_features
     def from_pretrained(self, out_features):
         # copy base model
         model_copy = copy.deepcopy(self)
@@ -108,8 +105,7 @@ class NeuralNetwork(nn.Module):
         return model_copy.to(self.device)
 
 
-    """ transform model's outputs into binary predictions (if model is binary classifier)
-        or index of highest probability class (argmax) otherwise """
+    # transform model's outputs into binary predictions or index of highest probability class (argmax) otherwise 
     def _pred(self, outputs):
         if self.is_binary:
             return (outputs >= 0.5) * 1.
@@ -117,21 +113,22 @@ class NeuralNetwork(nn.Module):
             return torch.argmax(outputs, dim=1)
 
 
-    """ predict labels. 0 or 1 if binary, top class (argmax) if not """
+    # predict labels. 0 or 1 if binary, top class (argmax) if not 
     def predict(self, x):
         x = x.to(self.device)
         return self._pred(self(x))
 
 
-    """ freeze the feature extractor (all layers up to penultimate layer) """
+    # freeze the feature extractor (all layers up to penultimate layer) 
     def freeze_extractor(self, flag):
         for param in self.model[:self.feature_extractor_layer+1].parameters():
             # set require_grad to false if finetuning (flag==True)
             param.requires_grad = not flag
 
 
+    # fit (train) the model
     def fit(self, trainloader, valloader, lr, epochs, val_interval=5, weight_decay=1e-5):
-        """ fit (train) the model
+        """ 
         @param trainloader: training set in form of dataloader
         @param valloader: validation set in form of dataloader
         @param lr: learning rate
@@ -179,7 +176,7 @@ class NeuralNetwork(nn.Module):
                                   'Val loss': val_loss})
         return {'Loss': loss_history, 'Accuracy': acc_history}
 
-
+    # test the model on a test set and return accuracy and loss (if requested)
     def test(self, testloader, compute_loss=False):
         correct, total, loss = 0., 0., 0.
 
@@ -205,7 +202,8 @@ class NeuralNetwork(nn.Module):
             return accuracy, (loss/len(testloader)).item()
         return accuracy
 
- 
+
+    # save the model to disk
     def save(self, fname):
         constants.model_dir.mkdir(parents=True, exist_ok=True)
         to_save = {'shape': self.shape,
@@ -225,12 +223,9 @@ class NeuralNetwork(nn.Module):
         return model
 
 
-"""
-Convolutional network compatible with the Transfer Learning wrapper used for the project.
-Written specifically to test the attacks also on complex datasets like CIFAR10.
-Exposes the same public interface as NeuralNetwork so that attack code can treat the
-two architectures interchangeably
-"""
+# Convolutional network compatible with the Transfer Learning wrapper used for the project.
+#   - Exposes the same public interface as NeuralNetwork so that attack code can treat the two architectures interchangeably.
+#   - Written specifically to test the attacks also on complex datasets like CIFAR10.
 class CIFARConvNet(nn.Module):
 
     def __init__(self, num_classes=10, loss_fn=None, optimizer=torch.optim.AdamW):
@@ -245,7 +240,7 @@ class CIFARConvNet(nn.Module):
         self.is_binary = False
         self.device = get_torch_device()
         
-        # Convolutional Backbone (phi) - feature extractor, equivalent role to NeuralNetwork's layers up to feature_extractor_layer
+        # Convolutional Backbone
         self.extractor = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
@@ -263,7 +258,9 @@ class CIFARConvNet(nn.Module):
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten()
         )
+
         self.feature_dim = 128
+
         # Output Classifier Layer, equivalent role to NeuralNetwork's last Linear layer
         self.fc = nn.Linear(self.feature_dim, num_classes)
 
@@ -273,23 +270,24 @@ class CIFARConvNet(nn.Module):
         self.optimizer_type = optimizer
 
 
-    """ return the features extracted by the backbone """
+
+    # return the features extracted by the backbone
     def features(self, x):
         return self.extractor(x)
 
 
-    """ implement forward method """
+    # implement forward method 
     def forward(self, x):
         feat = self.features(x)
         return self.fc(feat)
 
-    """ Freeze the feature extractor for finetuning """
+    # Freeze the feature extractor for finetuning
     def freeze_extractor(self, flag=True):
         for param in self.extractor.parameters():
             # set require_grad to false if finetuning (flag==True)
             param.requires_grad = not flag
 
-    """ return a copy of the model with a new output layer of shape out_features """
+    # return a copy of the model with a new output layer of shape out_features
     def from_pretrained(self, num_classes=10):
         self.freeze_extractor()
         self.fc = nn.Linear(self.feature_dim, num_classes).to(self.device)
@@ -297,18 +295,18 @@ class CIFARConvNet(nn.Module):
             param.requires_grad = True
         return self
 
-    """ index of highest probability class (argmax); CIFARConvNet is always multi-class """
+    # index of highest probability class (argmax); CIFARConvNet is always multi-class
     def _pred(self, outputs):
         return torch.argmax(outputs, dim=1)
 
-    """ predict labels (top class / argmax) """
+    # predict labels (top class / argmax)
     def predict(self, x):
         x = x.to(self.device)
         return self._pred(self(x))
 
-
+    # fit (train) the model
     def fit(self, trainloader, valloader, lr, epochs, val_interval=5):
-        """ fit (train) the model
+        """ 
         @param trainloader: training set in form of dataloader
         @param valloader: validation set in form of dataloader
         @param lr: learning rate
@@ -359,6 +357,8 @@ class CIFARConvNet(nn.Module):
         return {'Loss': loss_history, 'Accuracy': acc_history}
 
 
+
+    # test the model
     def test(self, testloader, compute_loss=False):
         correct, total, loss = 0., 0., 0.
 
@@ -382,6 +382,8 @@ class CIFARConvNet(nn.Module):
             return accuracy, (loss / len(testloader)).item()
         return accuracy
 
+
+    # save the model to disk
     def save(self, fname):
         constants.model_dir.mkdir(parents=True, exist_ok=True)
         to_save = {'num_classes': self.num_classes,
@@ -389,6 +391,7 @@ class CIFARConvNet(nn.Module):
                    'state_dict': self.state_dict()}
         torch.save(to_save, constants.model_dir / fname)
 
+    # load the model from disk
     @staticmethod
     def load(fname):
         device = get_torch_device()

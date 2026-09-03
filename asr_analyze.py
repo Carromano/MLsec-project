@@ -10,8 +10,8 @@ hyperparameters) is defined as:
 
 Usage:
     python analyze_asr.py results.csv
-    python analyze_asr.py results.csv --out asr_summary.csv
-    python analyze_asr.py results.csv --min-runs 3
+    python analyze_asr.py results.csv --out report/ASR_summary.csv
+    python analyze_asr.py results.csv --min-runs 5
     python analyze_asr.py results.csv --attack fc
     python analyze_asr.py results.csv --top 5
 """
@@ -69,6 +69,7 @@ def compute_asr(df: pd.DataFrame, min_runs: int = 1) -> pd.DataFrame:
     return summary
 
 
+
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Compute ASR per model/attack/params.")
@@ -119,8 +120,10 @@ def main():
     overall["asr %"] = overall["asr"] * 100
     overall = overall.sort_values(["attack", "asr"], ascending=[True, False])
 
+    # Print the overall summary to stdout
     print(overall.to_string(index=False))
 
+    # Write the summary and overall results to CSV if an output path is provided
     if out_file:
         summary.to_csv(out_file, index=False)
         print(f"\nFull per-config summary written to: {out_file}")

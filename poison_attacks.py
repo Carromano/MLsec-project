@@ -26,6 +26,7 @@ def get_images_from_label(data, label, num):
     return data[0][indices], indices
 
 
+# Main function to execute the poisoning attack
 def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_class, poison_num, epsilon=0.03, step_size=0.01, iterations=2000, watermark_opacity=0.3):
 
     # get images to use as bases for poisons and their indices from training data
@@ -38,7 +39,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
     base_imgs = base_imgs.to(model.device)
     target_img = target_img.to(model.device)       
 
-    print("\n-----------------")
+    print("\n-----------------\n")
 
     if dataset_name == "cat":
         print("Dataset in use: catvsnoncat") 
@@ -49,31 +50,29 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
     elif dataset_name == "cifar10":
         print("Dataset in use: CIFAR-10")
 
-    print("\n-----------------")
+    print("\n-----------------\n")
 
     # Feature Collision Poisoning Attack
     if attack_type == "fc":
 
         # print the parameters of the attack
         print("Feature Collision Poisoning Attack Implementation\n")
-        print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
-        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
+        print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using FC attack formula
         delta = craft_fc_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
 
-        # move the perturbations to the same device as the model, to avoid RuntimeError
+        # move the perturbations to the same device as the model, to avoid RuntimeError while printing images
         delta_on_device = delta.to(model.device)
 
         # print in the ./images folder clean, poisoned images and perturbations
-        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/feature_collision_poisons/{dataset_name}_clean_images.png")
-        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/feature_collision_poisons/{dataset_name}_poisoned_images.png")
-        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/feature_collision_poisons/{dataset_name}_poison_perturbations.png", isPerturbation=True)
-
+        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/feature_collision_poisons/{dataset_name}_clean_images.png")
+        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/feature_collision_poisons/{dataset_name}_poisoned_images.png")
+        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/feature_collision_poisons/{dataset_name}_poison_perturbations.png", isPerturbation=True)
 
         # clean baseline evaluation
-        print("\n--------\n\nResults:\n")
-        print(f'\nOriginal Prediction: {model.predict(target_img).item()}')
+        print("\n-----------------\n")
+        print(f'Original Prediction: {model.predict(target_img).item()}')
         print(f'Clean Model Accuracy: {model.test(data.testloader)}\n')
 
         # get copy of model with new output layer for finetuning
@@ -99,8 +98,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
 
         # print the parameters of the attack
         print("Polytope Poisoning Attack Implementation\n")
-        print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n")
-        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
+        print(f"Parameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tWatermark Opacity: {watermark_opacity}\n\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using POLYTOPE attack
         delta = craft_polytope_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon, watermark_opacity=watermark_opacity)
@@ -109,12 +107,12 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         delta_on_device = delta.to(model.device)
 
         # plot clean, poisoned images and perturbations
-        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/polytope_poisons/{dataset_name}_clean_images_polytope.png")
-        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/polytope_poisons/{dataset_name}_poisoned_images_polytope.png")
-        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/polytope_poisons/{dataset_name}_poison_perturbations_polytope.png", isPerturbation=True)
+        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/polytope_poisons/{dataset_name}_clean_images_polytope.png")
+        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/polytope_poisons/{dataset_name}_poisoned_images_polytope.png")
+        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/polytope_poisons/{dataset_name}_poison_perturbations_polytope.png", isPerturbation=True)
 
         # clean baseline evaluation
-        print("\n--------\n\nResults:\n")
+        print("\n-----------------\n")
         print(f'\nOriginal Prediction: {model.predict(target_img).item()}')
         print(f'Clean Model Accuracy: {model.test(data.testloader)}\n')
 
@@ -141,8 +139,7 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
 
         # print the parameters of the attack
         print("Gradient Matching Poisoning Attack Implementation\n")
-        print(f"\nParameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n")
-        print(f"\tlr: {lr};\n\tEpochs: {epochs}\n")
+        print(f"\nParameters:\n\tBase Class: {base_class};\n\tTarget Class: {target_class};\n\tPoison Budget: {poison_num};\n\tStep Size: {step_size};\n\tIterations: {iterations};\n\tEpsilon: {epsilon};\n\tlr: {lr};\n\tEpochs: {epochs}\n")
 
         # get poison perturbations using GRADIENT MATCHING attack
         delta_gradient = craft_gradient_matching_poisons(model, base_imgs, target_img, step_size, iterations=iterations, epsilon=epsilon)
@@ -151,12 +148,12 @@ def main(model, data, dataset_name, attack_type, lr, epochs, base_class, target_
         delta_on_device = delta_gradient.to(model.device)
 
         # plot clean, poisoned images and perturbations
-        # plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/gradient_matching/{dataset_name}_clean_images_gm.png")
-        # plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/gradient_matching/{dataset_name}_poisoned_images_gm.png")
-        # plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/gradient_matching/{dataset_name}_poison_perturbations_gm.png", isPerturbation=True)
+        plot_images(data.unnormalize_data(base_imgs), 4, 10, data.is_grayscale(), title="Clean Images", filename=f"./images/gradient_matching/{dataset_name}_clean_images_gm.png")
+        plot_images(data.unnormalize_data(base_imgs + delta_on_device), 4, 10, data.is_grayscale(), title="Poisoned Images", filename=f"./images/gradient_matching/{dataset_name}_poisoned_images_gm.png")
+        plot_images(data.unnormalize_data(delta_on_device), 4, 10, data.is_grayscale(), title="Poison Perturbations", filename=f"./images/gradient_matching/{dataset_name}_poison_perturbations_gm.png", isPerturbation=True)
 
         # clean baseline evaluation
-        print("\n--------\n\nResults:\n")
+        print("\n-----------------\n")
         print(f'\nOriginal Prediction: {model.predict(target_img).item()}')
         print(f'Clean Model Accuracy: {model.test(data.testloader)}')
 
@@ -221,7 +218,6 @@ if __name__ == '__main__':
     # get the parameters from the command line arguments
     base_class = args.base_class
     target_class = args.target_class
-
     
     attack_type = args.attack.lower()
     poison_num = args.poison_num
@@ -230,12 +226,10 @@ if __name__ == '__main__':
         if base_class not in [0, 1] or target_class not in [0, 1]:
             raise ValueError("For the cat dataset, base_class and target_class must be either 0 (non-cat) or 1 (cat).")
 
-
     epsilon = args.epsilon
     step_size = args.step_size
     iterations = args.iterations
     watermark_opacity = args.watermark_opacity
-
     lr = args.lr
     epochs = args.epochs    
 

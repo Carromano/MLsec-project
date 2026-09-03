@@ -22,7 +22,7 @@ Python ≥ 3.9
 
 ```sh
 # External libraries
-pip install torch torchvision torchaudio numpy matplotlib
+pip install torch torchvision torchaudio numpy matplotlib pandas
 
 # or
 

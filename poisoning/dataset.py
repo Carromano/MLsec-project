@@ -12,7 +12,6 @@ from torch.utils.data import TensorDataset, DataLoader
 
 
 # flattens data after the first dimension. 
-#   samples are organized by row: (num_samples, num_features)
 def flatten(data):
     data = data.reshape((data.shape[0], -1))
     feat_size = data.shape[1]
@@ -49,9 +48,7 @@ def load_cat_noncat():
     train_y = train_y.reshape((train_y.shape[0], 1))
     test_y = test_y.reshape((test_y.shape[0], 1))
 
-    return torch.from_numpy(train_x), torch.from_numpy(train_y), \
-           torch.from_numpy(test_x), torch.from_numpy(test_y), \
-           classes
+    return torch.from_numpy(train_x), torch.from_numpy(train_y), torch.from_numpy(test_x), torch.from_numpy(test_y), classes
 
 
 ## utility function to unpack MNIST dataset from gzip files
@@ -76,11 +73,7 @@ def load_cifar10():
     train = torchvision.datasets.CIFAR10(constants.data_dir, train=True, download=True)
     test = torchvision.datasets.CIFAR10(constants.data_dir, train=False, download=True)
     
-    # convert data from numpy arrays to torch tensors for compatibility with the rest of the code
-    # train_x = torch.from_numpy(train.data).float()
-    # test_x = torch.from_numpy(test.data).float()
-
-    # Da numpy (N, H, W, C) a PyTorch FloatTensor (N, C, H, W)
+    # Convert data from numpy arrays (N, H, W, C) to  PyTorch FloatTensor (N, C, H, W) 
     train_x = torch.from_numpy(train.data).permute(0, 3, 1, 2).float()
     test_x = torch.from_numpy(test.data).permute(0, 3, 1, 2).float()
     
@@ -132,7 +125,9 @@ def get_dataset(dataset_name, bs=128, normalize_to_mean_std=False):
                       mean, std, orig_shape=data_shape, flattened_shape=feat_size, class_num=len(classes))
     return dataset
 
+
 # Dataset class to hold train and test loaders, and other dataset information
+#   This has not been modified from the lab, I just adapted the CIFAR-10 loader to this class
 class Dataset:
     def __init__(self, name, trainloader, testloader, mean, std, orig_shape, flattened_shape, class_num):
         self.name = name

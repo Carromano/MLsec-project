@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 # function that plots a grid of images, with M rows and N columns, and saves the figure to a file if filename is provided
+#   I've applied some changes to fix the plotting of perturbations of RGB images and the file saving
 def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbation=False):
 
     # determine the number of rows needed to display all images
@@ -21,6 +22,7 @@ def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbat
             # if the index exceeds the number of images, hide the subplot
             if idx >= len(X):
                 ax[i][j].set_visible(False)
+
             # else, display the image in the subplot
             else:
                 sample = 1 - X[idx].cpu().numpy() if grayscale else X[idx].cpu().numpy()
@@ -47,10 +49,10 @@ def plot_images(X, M, N, grayscale=False, title=None, filename=None, isPerturbat
     if filename is not None:
         plt.savefig(filename, bbox_inches='tight', dpi=300)
         print(f"\tSaved figure to {filename}")
-        
-    # show the figure if the backend if it is interactive (gave error before on WSL)
-    if matplotlib.get_backend().lower() != "agg":
-        plt.show()
+    else:
+        # show the figure if the backend if it is interactive
+        if matplotlib.get_backend().lower() != "agg":
+            plt.show()
 
     # close the figure to free memory
     plt.close(f)

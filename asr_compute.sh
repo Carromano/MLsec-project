@@ -9,10 +9,6 @@
 # a single failed python run must not kill the loop
 set -uo pipefail   
 
-
-# CONFIGURATIONS AND PARAMETERS
-# -------------------------------------
-
 # Models to evaluate. Comment/uncomment as needed.
 MODELS=(
     "model_cat_lr0.0075"
@@ -34,7 +30,6 @@ CLASS_PAIRS["model_cat_lr0.0075"]="1:0"
 CLASS_PAIRS["model_cifar10_lr0.001_30epochs"]="2:0 5:3 9:1 7:4"
 CLASS_PAIRS["model_mnist_lr0.0075"]="1:7 8:3 4:9 6:5"
 
-
 # How many independent runs per (model, attack, base, target) combo.
 REPETITIONS=5
 
@@ -55,7 +50,7 @@ RESULTS_CSV="${OUTDIR}/results.csv"
 SUMMARY_CSV="${OUTDIR}/summary.csv"
 
 mkdir -p "$OUTDIR"
-echo "model,attack,base_class,target_class,epochs,lr,poison_num,epsilon,watermark_opacity,iterations,run,success,clean_acc,poisoned_acc" > "$RESULTS_CSV"
+echo "model,attack,base_class,target_class,epochs,lr,poison_num,epsilon,watermark_opacity,step_size,iterations,run,success,clean_acc,poisoned_acc" > "$RESULTS_CSV"
 
 
 # Extracts a specific part from the poison_attacks.py output, and returns just the value

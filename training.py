@@ -8,6 +8,7 @@ from torch.utils.data import TensorDataset
 from poisoning.dataset import get_dataset
 from poisoning.neural_network import CIFARConvNet, NeuralNetwork, get_torch_device
 
+# function to train and freeze a model on the CIFAR-10 dataset
 def train_and_freeze_cifar(lr, epochs):
     device = get_torch_device()
 
@@ -26,7 +27,6 @@ def train_and_freeze_cifar(lr, epochs):
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_data, batch_size=128, shuffle=False)
 
-    
     # training on clean CIFAR-10 dataset
     print(f"Starting training on CIFAR-10... (lr={lr}, epochs={epochs})")
     model.fit(train_loader, val_loader, lr=lr, epochs=epochs)
@@ -46,6 +46,7 @@ def train_and_freeze_cifar(lr, epochs):
     print(f"Checkpoint saved with success in: {save_path}")
 
 
+# function to train and freeze a model on the MNIST dataset
 def train_and_freeze_mnist(lr, epochs):
     device = get_torch_device()
 
@@ -86,6 +87,8 @@ def train_and_freeze_mnist(lr, epochs):
     print(f"Checkpoint saved with success in: {save_path}\n")
 
 
+# function to train and freeze a model on the Cat-vs-NonCat dataset
+#    the validation set is actually disabled because the dataset used is too small and takes the model to overfit.
 def train_and_freeze_cat(lr, epochs):
     device = get_torch_device()
 
@@ -139,7 +142,7 @@ def train_and_freeze_cat(lr, epochs):
     print(f"Checkpoint saved with success in: {save_path}\n")
 
 
-
+# Main function to parse command line arguments and call the appropriate training function
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
